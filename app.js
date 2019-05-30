@@ -20,6 +20,16 @@ app.set('views', 'views');
 app.use(bodyParser.urlencoded({ extended: true }));
 // extended can also be false
 // https://stackoverflow.com/questions/29960764/what-does-extended-mean-in-express-4-0
+
+// MySQL exercise => install by npm i mysql2 --save
+// IMPORTANT: MySQL is asynchronous. So I can use .then / .catch
+// const db = require('./helper/database');
+// db.execute('SELECT * FROM products')
+//     .then(result => {
+//         // Data we want is located in first index.
+//         console.log(result[0], result[1]);
+//     }).catch(err => {});
+
 app.use(express.static(path.join(__dirname, 'public')));
 // directly forwarded to the file system.
 // doesn't get handled by express. 

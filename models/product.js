@@ -1,3 +1,4 @@
+// fs and path are for grabbing data from local file (cart.json or product.json)
 const fs = require('fs');
 const path = require('path');
 const rootDir = require("../helper/path");
