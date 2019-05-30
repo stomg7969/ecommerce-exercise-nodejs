@@ -13,6 +13,7 @@ module.exports = class Product {
     // .readFile, .writeFile are asynchronous.
     save() {
         // Model only returns the db, rest is controller's responsibility.
+        // Of course, instead of using plain SQL commands / syntax, I can use third party npm to make my life easier.
         return db.execute('INSERT INTO products (title, price, description, imageUrl) VALUES (?, ?, ?, ?)', 
         [this.title, this.price, this.description, this.imageUrl]
         );
