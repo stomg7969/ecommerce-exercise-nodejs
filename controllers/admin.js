@@ -26,8 +26,11 @@ exports.postAddProduct = (req, res) => {
   const description = req.body.description;
   // const { title, imageUrl, price, description } = req.body;
   const product = new Product(null, title, imageUrl, description, price);
-  product.save();
-  res.redirect("/");
+  product.save()
+    .then(() => {
+      res.redirect("/");
+    })
+    .catch(err => console.log('HAS ERR IN ADMIN CTRL?', err));
 };
 
 exports.getEditProduct = (req, res, next) => {

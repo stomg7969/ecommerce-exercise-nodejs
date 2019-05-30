@@ -4,41 +4,43 @@ const Product = require("../models/product");
 const Cart = require('../models/cart');
 
 exports.getProducts = (req, res, next) => {
-  console.log("%c IN SHOP.JS...", "color: white; background-color: black");
-  // *****
-  // res.sendFile(path.join(rootDir, 'views', 'shop.html'));
-  // two underscore + dirname => __dirname
-  // Using express.js, we don't need to write res.setHeader() anymore.
-  // ... we still can, but why would you? .send() does it by default.
-  // *****
-  Product.fetchAll(products => {
-    res.render("shop/product-list", {
-      products: products, 
-      pageTitle: "ALL PRODUCTS", 
-      path: "/products" 
-    });
-    // shop.pug, but by default it looks for .pug because of what I did in add.js.
-    // the second argument is what we pass to the view.
-  });
+  console.log("%c All products(shop ctrl)", "color: white; background-color: black");
+  Product.fetchAll()
+    .then(([rows, fieldData]) => {
+      res.render("shop/product-list", {
+        products: rows,
+        pageTitle: "ALL PRODUCTS",
+        path: "/products"
+      });
+    })
+    .catch(err => console.log('HAS ERR IN getProducts?', err));
 };
 exports.getProduct = (req, res, next) => {
   const prodId = req.params.productId;
-  Product.findById(prodId, product => {
-    res.render('shop/product-detail', { 
-      product: product, 
-      pageTitle: product.title,
-      path: '/products'
-    });
-  });
+  Product.findById(prodId)
+  //  Reason for [product] is ... it's like const { value } = req.body;
+    .then(([product]) => {
+      res.render('shop/product-detail', { 
+        // [product] will return the first element only, but in array. So I need to get the first index.
+        product: product[0], 
+        pageTitle: product.title,
+        path: '/products'
+      });
+    })
+    .catch(err => console.log('HAS ERR IN getProduct?', err));
 }
 exports.getIndex = (req, res, next) => {
-  Product.fetchAll(products => {
-    res.render("shop/index", {
-      products: products,
-      pageTitle: "Shop",
-      path: "/"
-    });
-  });
+  // Remember that the data is stored in first element. Instructor calls it rows.
+  Product.fetchAll()
+    // fieldData can be deleted, but let it be there so I don't forget.
+    .then(([rows, fieldData]) => {
+      res.render("shop/index", {
+        products: rows,
+        pageTitle: "Shop",
+        path: "/"
+      });
+    })
+    .catch(err => console.log('HAS ERR IN getIndex?', err));
 }
 exports.getCart = (req, res, next) => {
   // Here, I am rendering list of products that is in the cart.json.
