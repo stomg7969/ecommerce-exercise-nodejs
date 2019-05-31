@@ -15,7 +15,7 @@ dotenv.config();
 // // telling system that it is asynchronous
 // module.exports = pool.promise();
 
-// ------- ABOVE WAS DONE WITHOUT sequelizer. 
+// ------- ABOVE WAS DONE WITHOUT sequelize. 
 // sequelize helps us to write SQL query easily.
 const Sequelize = require('sequelize');
 // connect to my data table name.

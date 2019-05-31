@@ -4,43 +4,73 @@ const Product = require('../models/product');
 const Cart = require('../models/cart');
 
 exports.getProducts = (req, res, next) => {
-	console.log('%c All products(shop ctrl)', 'color: white; background-color: black');
-	Product.fetchAll()
-		.then(([rows, fieldData]) => {
+	Product.findAll()
+		.then(products => {
 			res.render('shop/product-list', {
-				products: rows,
-				pageTitle: 'ALL PRODUCTS',
+				products: products,
+				pageTitle: 'All Products',
 				path: '/products'
 			});
 		})
-		.catch((err) => console.log('HAS ERR IN getProducts?', err));
+		.catch(err => console.log('HAS ERR IN getIndex shop.js?', err));
 };
 exports.getProduct = (req, res, next) => {
 	const prodId = req.params.productId;
-	Product.findById(prodId)
-		//  Reason for [product] is ... it's like const { value } = req.body;
-		.then(([product]) => {
+	// Product.findById(prodId)
+	// 	//  Reason for [product] is ... it's like const { value } = req.body;
+	// 	.then(([product]) => {
+	// 		res.render('shop/product-detail', {
+	// 			// [product] will return the first element only, but in array. So I need to get the first index.
+	// 			product: product[0],
+	// 			pageTitle: product.title,
+	// 			path: '/products'
+	// 		});
+	// 	})
+	// ------------------ SEQUELIZE I -------------------
+	Product.findByPk(prodId)
+		.then(product => {
 			res.render('shop/product-detail', {
-				// [product] will return the first element only, but in array. So I need to get the first index.
-				product: product[0],
+				product: product,
 				pageTitle: product.title,
 				path: '/products'
-			});
+			})
 		})
 		.catch((err) => console.log('HAS ERR IN getProduct?', err));
+	// ------------------ SEQUELIZE II -------------------
+	// When you want to get very specific attributes.
+	// if I use where, it will return array, so I will need the first idx of it.
+	// Product.findAll({ where: { id: prodId } })
+	// 	.then(products => {
+	// 		res.render('shop/product-detail', {
+	// 			product: products[0],
+	// 			pageTitle: products[0].title,
+	// 			path: '/products'
+	// 		});
+	// 	})
+	// 	.catch(err => console.log(err));
 };
 exports.getIndex = (req, res, next) => {
-	// Remember that the data is stored in first element. Instructor calls it rows.
-	Product.fetchAll()
-		// fieldData can be deleted, but let it be there so I don't forget.
-		.then(([rows, fieldData]) => {
+	// // Remember that the data is stored in first element. Instructor calls it rows.
+	// Product.fetchAll()
+	// 	// fieldData can be deleted, but let it be there so I don't forget.
+	// 	.then(([rows, fieldData]) => {
+	// 		res.render('shop/index', {
+	// 			products: rows,
+	// 			pageTitle: 'Shop',
+	// 			path: '/'
+	// 		});
+	// 	})
+	// 	.catch((err) => console.log('HAS ERR IN getIndex?', err));
+	// ------------------- SEQUELIZE ------------------------
+	Product.findAll()
+		.then(products => {
 			res.render('shop/index', {
-				products: rows,
+				products: products,
 				pageTitle: 'Shop',
 				path: '/'
 			});
 		})
-		.catch((err) => console.log('HAS ERR IN getIndex?', err));
+		.catch(err => console.log('HAS ERR IN getIndex shop.js?', err));
 };
 exports.getCart = (req, res, next) => {
 	// Here, I am rendering list of products that is in the cart.json.

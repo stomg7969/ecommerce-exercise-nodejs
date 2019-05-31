@@ -9,7 +9,7 @@ exports.getAddProduct = (req, res, next) => {
 	// We can't use next() when response is already called. Will get an error.
 	// BELOW: when I use plain html
 	// res.sendFile(path.join(rootDir, 'views', 'product.html'));
-	// BELOW: when I use pug template.
+	// BELOW: when I use pug template. // path is just another prop that I pass, value can be anything
 	res.render('admin/edit-product', {
 		pageTitle: 'ADD PRODUCT',
 		path: '/admin/add-product',
@@ -25,13 +25,25 @@ exports.postAddProduct = (req, res) => {
 	const price = req.body.price;
 	const description = req.body.description;
 	// const { title, imageUrl, price, description } = req.body;
-	const product = new Product(null, title, imageUrl, description, price);
-	product
-		.save()
-		.then(() => {
-			res.redirect('/');
+	// const product = new Product(null, title, imageUrl, description, price);
+	// product
+	// 	.save()
+	// 	.then(() => {
+	// 		res.redirect('/');
+	// 	})
+	// 	.catch((err) => console.log('HAS ERR IN ADMIN CTRL?', err));
+	// -------------------- SEQUELIZE --------------------
+	Product.create({
+		title: title,
+		price: price,
+		imageUrl: imageUrl,
+		description: description
+	})
+		.then(result => {
+			console.log('Product created in admin ctrl');
+			res.redirect('/admin/products');
 		})
-		.catch((err) => console.log('HAS ERR IN ADMIN CTRL?', err));
+		.catch(err => console.log('HAS ERR IN ADMIN CTRL postAddProd?', err));
 };
 
 exports.getEditProduct = (req, res, next) => {
@@ -42,24 +54,42 @@ exports.getEditProduct = (req, res, next) => {
 	if (!editMode) return res.redirect('/');
 
 	const prodId = req.params.productId;
-	Product.findById(prodId, (product) => {
-		if (!product) return res.redirect('/');
-		res.render('admin/edit-product', {
-			pageTitle: 'Edit PRODUCT',
-			path: '/admin/edit-product',
-			editing: editMode,
-			product: product
-		});
-		// Remember, res.render is what I send information to view pages.
-	});
+	Product.findByPk(prodId)
+		.then(product => {
+			if (!product) return res.redirect('/');
+			res.render('admin/edit-product', {
+				pageTitle: 'Edit PRODUCT',
+				path: '/admin/edit-product',
+				editing: editMode,
+				product: product
+			});
+			// Remember, res.render is what I send information to view pages.
+		})
+		.catch(err => {
+			console.log('ADMIN EDIT PRD ERR?', err);
+		})
 };
 
 exports.postEditProduct = (req, res, next) => {
 	const { productId, title, price, imageUrl, description } = req.body;
-	const updatedProduct = new Product(productId, title, imageUrl, description, price);
-	updatedProduct.save();
+	// const updatedProduct = new Product(productId, title, imageUrl, description, price);
+	// updatedProduct.save();
+	// res.redirect('/admin/products');
 	// Instead of redirecting all the time, validate if .save() or .delete() is successful first.
-	res.redirect('/admin/products');
+	// ------------------- SEQUELIZE -------------------
+	Product.findByPk(productId)
+		.then(product => {
+			product.title = title;
+			product.price = price;
+			product.imageUrl = imageUrl;
+			product.description = description;
+			return product.save();
+		})
+		.then(r => {
+			console.log('Updated SUCCESS!');
+			res.redirect('/admin/products');
+		})
+		.catch(err => console.log('ADMIN postEdit ERR?', err));
 };
 
 exports.postDeleteProduct = (req, res) => {
@@ -67,17 +97,35 @@ exports.postDeleteProduct = (req, res) => {
 	// I am also passing price to update cart.
 	// this is something I am trying on my own, not instructor's
 	const { productId, productPrice } = req.body;
-	Product.delete(productId, parseFloat(productPrice));
-	res.redirect('/admin/products');
+	// Product.delete(productId, parseFloat(productPrice));
+	// ------------- SEQUELIZE ---------------
+	Product.findByPk(productId)
+		// what about price?
+		.then(product => product.destroy())
+		.then(r => {
+			console.log('DESTROY SUCCESS.');
+			res.redirect('/admin/products');
+		})
+		.catch(err => console.log('ADMIN DELETE PROD ERR?', err));
 };
 
 exports.getProducts = (req, res, next) => {
 	console.log('Product list for admin');
-	Product.fetchAll((products) => {
-		res.render('admin/products', {
-			products: products,
-			pageTitle: 'Admin Products',
-			path: '/admin/products'
-		});
-	});
+	// Product.fetchAll((products) => {
+	// 	res.render('admin/products', {
+	// 		products: products,
+	// 		pageTitle: 'Admin Products',
+	// 		path: '/admin/products'
+	// 	});
+	// });
+
+	Product.findAll()
+		.then(products => {
+			res.render('admin/products', {
+				products: products,
+				pageTitle: 'Admin Products',
+				path: '/admin/products'
+			});
+		})
+		.catch(err => console.log('ADMIN PRODUCT LIST ERR?', err));
 };

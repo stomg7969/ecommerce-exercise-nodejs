@@ -40,11 +40,17 @@ app.use(shopRoutes);
 // 404 error page should be the last one.
 app.use(errorController.renderError);
 
+// SEQUELIZE ----------------------
+const sequelize = require('./helper/database');
+// ... sync to database and create table for me.
+sequelize.sync()
+    .then(result => app.listen(3000))
+    .catch(err => console.log('HAS ERR IN APP SEQUELIZE?', err));
+
 // const server = http.createServer(app);
 // server.listen(3000);
 // can become ...
-
-app.listen(3000);
+// app.listen(3000);
 
 // npm init ...
 // npm install --save express
