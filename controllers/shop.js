@@ -150,10 +150,19 @@ exports.postCartDeleteProduct = (req, res) => {
 	// ... here, I will just follow along with instruction.
 	const prodId = req.body.productId;
 	// findById is static custom function.
-	Product.findById(prodId, (product) => {
-		Cart.deleteProduct(prodId, product.price);
-		res.redirect('/cart');
-	});
+	// Product.findById(prodId, (product) => {
+	// 	Cart.deleteProduct(prodId, product.price);
+	// 	res.redirect('/cart');
+	// });
+	// ------------ SEQUELIZE ------------
+	req.user.getCart()
+		.then(cart => cart.getProducts({ where: { id: prodId } }))
+		.then(products => {
+			const product = products[0];
+			return product.cartItem.destroy();
+		})
+		.then(r => res.redirect('/cart'))
+		.catch(err => console.log('SHOP delete CART ERR?', err));
 };
 exports.getCheckout = (req, res, next) => {
 	res.render('shop/checkout', {
