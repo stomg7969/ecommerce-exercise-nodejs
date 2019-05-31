@@ -34,17 +34,61 @@ app.use(express.static(path.join(__dirname, 'public')));
 // directly forwarded to the file system.
 // doesn't get handled by express. 
 
+// Middle ware for SEQUELIZE ------------
+// I can store anything in the middleware / in my request so that I can use it anywhere in my app conveniently. 
+app.use((req, res, next) => {
+    // This only a middleware, does not create user on its own. need the bottom lines.
+    // This will NOT run automatically, only when requested. It's like reducer in Redux.
+    User.findByPk(1)
+        .then(user => {
+            // storing into req.user. Like session. 
+            req.user = user;
+            // then call the next app.use below.
+            next();
+        })
+        .catch(err => console.log('ERR in APP Middleware?', err));
+});
+// ---------------------------------------
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
 
 // 404 error page should be the last one.
 app.use(errorController.renderError);
-
-// SEQUELIZE ----------------------
+// ------------ SEQUELIZE ------------
 const sequelize = require('./helper/database');
+// ------------ SEQUELIZE ASSOCIATION ------------
+const Product = require('./models/product');
+const User = require('./models/user');
+const Cart = require('./models/cart');
+const CartItem = require('./models/cart-item');
+
+// ------------ ASSOCIATION SECTION ------------
+// second argument is optional.
+Product.belongsTo(User, { constraints: true, onDelete: 'CASCADE' });
+User.hasMany(Product); // Optional, because association is already established.
+User.hasOne(Cart);
+Cart.belongsTo(User);
+Cart.belongsToMany(Product, { through: CartItem });
+Product.belongsToMany(Cart, { through: CartItem });
+
 // ... sync to database and create table for me.
+// sequelize.sync({ force: true })
+// having force attribute will overwrite the database. WILL NOT USE IN REAL DEVELOPMENT.
 sequelize.sync()
-    .then(result => app.listen(3000))
+    .then(result => {
+        return User.findByPk(1);
+        // app.listen(3000)
+    })
+    .then(user => {
+        if (!user) {
+            return User.create({ name: 'Nate', email: 'nate@nate.com' });
+        }
+        // Promise.resolve will which is promise will immediately resolve to user.
+        // But I can omit it because it is inside .then.
+        return Promise.resolve(user);
+    })
+    .then(user => user.createCart())
+    .then(cart => app.listen(3000))
     .catch(err => console.log('HAS ERR IN APP SEQUELIZE?', err));
 
 // const server = http.createServer(app);

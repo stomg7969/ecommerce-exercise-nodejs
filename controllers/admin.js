@@ -33,7 +33,8 @@ exports.postAddProduct = (req, res) => {
 	// 	})
 	// 	.catch((err) => console.log('HAS ERR IN ADMIN CTRL?', err));
 	// -------------------- SEQUELIZE --------------------
-	Product.create({
+	// I can create associated product to user.
+	req.user.createProduct({
 		title: title,
 		price: price,
 		imageUrl: imageUrl,
@@ -54,8 +55,10 @@ exports.getEditProduct = (req, res, next) => {
 	if (!editMode) return res.redirect('/');
 
 	const prodId = req.params.productId;
-	Product.findByPk(prodId)
-		.then(product => {
+	// Product.findByPk(prodId)
+	req.user.getProducts({ where: { id: prodId } })
+		.then(products => {
+			const product = products[0];
 			if (!product) return res.redirect('/');
 			res.render('admin/edit-product', {
 				pageTitle: 'Edit PRODUCT',
@@ -118,8 +121,8 @@ exports.getProducts = (req, res, next) => {
 	// 		path: '/admin/products'
 	// 	});
 	// });
-
-	Product.findAll()
+	req.user.getProducts()
+		// Product.findAll()
 		.then(products => {
 			res.render('admin/products', {
 				products: products,
