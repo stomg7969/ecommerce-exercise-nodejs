@@ -5,7 +5,7 @@ const Product = require('../models/product');
 // Getting everything from user.
 
 exports.getProducts = (req, res, next) => {
-	Product.findAll()
+	Product.fetchAll()
 		.then(products => {
 			res.render('shop/product-list', {
 				products: products,
@@ -28,7 +28,7 @@ exports.getProduct = (req, res, next) => {
 	// 		});
 	// 	})
 	// ------------------ SEQUELIZE I -------------------
-	Product.findByPk(prodId)
+	Product.findById(prodId)
 		.then(product => {
 			res.render('shop/product-detail', {
 				product: product,
@@ -51,19 +51,7 @@ exports.getProduct = (req, res, next) => {
 	// 	.catch(err => console.log(err));
 };
 exports.getIndex = (req, res, next) => {
-	// // Remember that the data is stored in first element. Instructor calls it rows.
-	// Product.fetchAll()
-	// 	// fieldData can be deleted, but let it be there so I don't forget.
-	// 	.then(([rows, fieldData]) => {
-	// 		res.render('shop/index', {
-	// 			products: rows,
-	// 			pageTitle: 'Shop',
-	// 			path: '/'
-	// 		});
-	// 	})
-	// 	.catch((err) => console.log('HAS ERR IN getIndex?', err));
-	// ------------------- SEQUELIZE ------------------------
-	Product.findAll()
+	Product.fetchAll()
 		.then(products => {
 			res.render('shop/index', {
 				products: products,

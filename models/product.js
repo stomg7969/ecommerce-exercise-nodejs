@@ -1,59 +1,49 @@
-// COMMENTED OUT SECTION IS FOR USING PLAIN SQL QUERIES. 
+// Using this method, now I can get an access to db.
+const mongodb = require('mongodb');
+const getDb = require('../helper/database').getDb;
 
-// const db = require('../helper/database');
-// const Cart = require('./cart');
-// module.exports = class Product {
-// 	constructor(id, title, imageUrl, description, price) {
-// 		this.id = id;
-// 		this.title = title;
-// 		this.imageUrl = imageUrl;
-// 		this.description = description;
-// 		this.price = price;
-// 	}
-// 	// .readFile, .writeFile are asynchronous.
-// 	save() {
-// 		// Model only returns the db, rest is controller's responsibility.
-// 		// Of course, instead of using plain SQL commands / syntax, I can use third party npm to make my life easier.
-// 		return db.execute('INSERT INTO products (title, price, description, imageUrl) VALUES (?, ?, ?, ?)', [
-// 			this.title,
-// 			this.price,
-// 			this.description,
-// 			this.imageUrl
-// 		]);
-// 	}
-// 	static delete() { }
-// 	static fetchAll() {
-// 		return db.execute('SELECT * FROM products');
-// 	}
-// 	static findById(id) {
-// 		return db.execute('SELECT * FROM products WHERE products.id = ?', [id]);
-// 	}
-// };
-// -------------------- SEQUELIZE ------------------------
-const Sequelize = require('sequelize');
-const sequelize = require('../helper/database');
-// use .define() to create new model. Similar to class => new Product ...
-// checkout sequelize documentation to see all possible properties.
-const Product = sequelize.define('product', {
-	id: {
-		type: Sequelize.INTEGER,
-		autoIncrement: true,
-		allowNull: false,
-		primaryKey: true
-	},
-	title: Sequelize.STRING,
-	price: {
-		type: Sequelize.DOUBLE,
-		allowNull: false,
-	},
-	imageUrl: {
-		type: Sequelize.STRING,
-		allowNull: false
-	},
-	description: {
-		type: Sequelize.STRING,
-		allowNull: false
+class Product {
+	constructor(title, price, description, imageUrl) {
+		this.title = title;
+		this.price = price;
+		this.description = description;
+		this.imageUrl = imageUrl;
 	}
-});
+	save() {
+		const db = getDb();
+		// .collection() is to tell MongoDB into which collection I want to insert or with which collection I want to work.
+		// IMPORTANT: in MongoDB I have Databases, Collections, Documents. 
+		return db.collection('products').insertOne(this)
+			.then(r => {
+				console.log('READY TO DELETEDELETEDELTEDELETE');
+			})
+			.catch(err => console.log('PROD MODEL SAVE ERR?', err));
+	}
+	static fetchAll() {
+		const db = getDb();
+		// .find is MongoDB's method. Empty argument at .find will return all products.
+		// .find will return something called 'cursor', which is provided by MongoDB, which allows us to go through our elements/documents step by step.
+		// So, to prevent from .find() to retrieve the entire products (a million products at once), I can use limitation method. Otherwise, .toArray().
+		return db.collection('products').find().toArray()
+			.then(products => {
+				return products;
+			})
+			.catch(err => console.log('product FETCHALL ERR?', err));
+	}
+	static findById(id) {
+		const db = getDb();
+		// need .next() to get one as javascript format/syntax
+		// It is not underscored. So dynamic route must change in the view file.
+		// Underscore is because in MongoDB, id is stored as _id.
+		return db.collection('products')
+			// Also, MongoDB stores data in BSON format. That's why it's so disgusting looking.
+			.find({ _id: new mongodb.ObjectId(id) })
+			.next()
+			.then(product => {
+				return product;
+			})
+			.catch(err => console.log('model product findID ERR?', err));
+	}
+}
 
 module.exports = Product;

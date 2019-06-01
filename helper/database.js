@@ -1,24 +1,32 @@
 const dotenv = require('dotenv');
 dotenv.config();
-// // this file is for MySQL2 exercise.
-// const mysql = require('mysql2');
-// // pool can run multiple queries. It's a 'pool' of connections.
-// // Always reach out to it whenever we have query to run.
-// // Then it provides new connection.
-// // createConnection is just one connection.
-// const pool = mysql.createPool({
-//     host: 'localhost',
-//     user: 'root',
-//     database: 'node-complete',
-//     password: process.env.MYSQL_PW
-// });
-// // telling system that it is asynchronous
-// module.exports = pool.promise();
+// this file is for MongoDB exercise.
+const mongodb = require('mongodb');
+const MongoClient = mongodb.MongoClient;
+// underscore is a signal that it will only be used internally in this file.
+let _db;
 
-// ------- ABOVE WAS DONE WITHOUT sequelize. 
-// sequelize helps us to write SQL query easily.
-const Sequelize = require('sequelize');
-// connect to my data table name.
-const sequelize = new Sequelize('node-complete', 'root', process.env.MYSQL_PW, { dialect: 'mysql', host: 'localhost' });
+const mongoConnect = (cb) => {
+  // Make sure to change password
+  MongoClient.connect('mongodb+srv://jane:jane@cluster0-kl0m7.mongodb.net/shop?retryWrites=true&w=majority', { useNewUrlParser: true })
+    .then(client => {
+      console.log('CONNECTED YO');
+      _db = client.db(); // Since I did this, instead of connecting to 'test' (...mongodb.net/test?...) --> 'shop'.
+      // it will now give me an access to shop db. If want something else, for example back to test, then it'll be, client.db('test').
+      cb();
+    })
+    .catch(err => {
+      console.log('database CONNECTION ERR?', err)
+      throw err;
+    });
+};
+const getDb = () => {
+  if (_db) {
+    return _db;
+  }
+  throw 'No db found.';
+}
 
-module.exports = sequelize;
+// module.exports = mongoConnect;
+exports.mongoConnect = mongoConnect;
+exports.getDb = getDb; 

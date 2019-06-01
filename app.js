@@ -21,86 +21,48 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // extended can also be false
 // https://stackoverflow.com/questions/29960764/what-does-extended-mean-in-express-4-0
 
-// MySQL exercise => install by npm i mysql2 --save
-// IMPORTANT: MySQL is asynchronous. So I can use .then / .catch
-// const db = require('./helper/database');
-// db.execute('SELECT * FROM products')
-//     .then(result => {
-//         // Data we want is located in first index.
-//         console.log(result[0], result[1]);
-//     }).catch(err => {});
-
 app.use(express.static(path.join(__dirname, 'public')));
 // directly forwarded to the file system.
 // doesn't get handled by express. 
 
 // Middle ware for SEQUELIZE ------------
 // I can store anything in the middleware / in my request so that I can use it anywhere in my app conveniently. 
+// app.use((req, res, next) => {
+//     // This only a middleware, does not create user on its own. need the bottom lines.
+//     // This will NOT run automatically, only when requested. It's like reducer in Redux.
+//     User.findByPk(1)
+//         .then(user => {
+//             // storing into req.user. Like session. 
+//             req.user = user;
+//             // then call the next app.use below.
+//             next();
+//         })
+//         .catch(err => console.log('ERR in APP Middleware?', err));
+// });
+// --------------- MongoDB -----------------
+const mongoConnect = require('./helper/database').mongoConnect;
 app.use((req, res, next) => {
-    // This only a middleware, does not create user on its own. need the bottom lines.
-    // This will NOT run automatically, only when requested. It's like reducer in Redux.
-    User.findByPk(1)
-        .then(user => {
-            // storing into req.user. Like session. 
-            req.user = user;
-            // then call the next app.use below.
-            next();
-        })
-        .catch(err => console.log('ERR in APP Middleware?', err));
+    next();
 });
-// ---------------------------------------
+
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
+// ---------------  -----------------
 
 // 404 error page should be the last one.
 app.use(errorController.renderError);
-// ------------ SEQUELIZE ------------
-const sequelize = require('./helper/database');
-// ------------ SEQUELIZE ASSOCIATION ------------
-const Product = require('./models/product');
-const User = require('./models/user');
-const Cart = require('./models/cart');
-const CartItem = require('./models/cart-item');
-const Order = require('./models/order');
-const OrderItem = require('./models/order-item');
 
-// ------------ ASSOCIATION SECTION ------------
-// second argument is optional.
-Product.belongsTo(User, { constraints: true, onDelete: 'CASCADE' });
-User.hasMany(Product); // Optional, because association is already established.
-User.hasOne(Cart);
-Cart.belongsTo(User);
-Cart.belongsToMany(Product, { through: CartItem });
-Product.belongsToMany(Cart, { through: CartItem });
-Order.belongsTo(User);
-User.hasMany(Order);
-Order.belongsToMany(Product, { through: OrderItem });
-Product.belongsToMany(Order, { through: OrderItem });
-
-// ... sync to database and create table for me.
-// sequelize.sync({ force: true })
-// having force attribute will overwrite the database. WILL NOT USE IN REAL DEVELOPMENT.
-sequelize.sync()
-    .then(result => {
-        return User.findByPk(1);
-        // app.listen(3000)
-    })
-    .then(user => {
-        if (!user) {
-            return User.create({ name: 'Nate', email: 'nate@nate.com' });
-        }
-        // Promise.resolve will which is promise will immediately resolve to user.
-        // But I can omit it because it is inside .then.
-        return Promise.resolve(user);
-    })
-    .then(user => user.createCart())
-    .then(cart => app.listen(3000))
-    .catch(err => console.log('HAS ERR IN APP SEQUELIZE?', err));
-
-// const server = http.createServer(app);
-// server.listen(3000);
-// can become ...
-// app.listen(3000);
+// ------------ MONGODB ------------
+// npm install mongodb --save
+mongoConnect(() => {
+    // mongoConnect((response) => {
+    // because I decided to pass cb (from helper/database), I need cb argument for mongoConnect(<here>).
+    // the cb there also has an argument, the 'r'. Here, I'll say response.
+    // console.log(response); // response is the client.
+    // keep in mind that I don't have to pass the cb. 
+    // It was just to console.log the response.
+    app.listen(3000);
+});
 
 // npm init ...
 // npm install --save express
