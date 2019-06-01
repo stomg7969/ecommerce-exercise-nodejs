@@ -3,19 +3,29 @@ const mongodb = require('mongodb');
 const getDb = require('../helper/database').getDb;
 
 class Product {
-	constructor(title, price, description, imageUrl) {
+	constructor(title, price, description, imageUrl, id) {
 		this.title = title;
 		this.price = price;
 		this.description = description;
 		this.imageUrl = imageUrl;
+		this._id = new mongodb.ObjectId(id);
 	}
 	save() {
 		const db = getDb();
-		// .collection() is to tell MongoDB into which collection I want to insert or with which collection I want to work.
-		// IMPORTANT: in MongoDB I have Databases, Collections, Documents. 
-		return db.collection('products').insertOne(this)
+		let dbOp;
+		if (this._id) {
+			// Update the product --> for editing. 
+			dbOp = db.collection('products')
+				// also can be .updateMany if I want to update more than one.
+				.updateOne({ _id: this._id }, { $set: this });
+		} else {
+			// .collection() is to tell MongoDB into which collection I want to insert or with which collection I want to work.
+			// IMPORTANT: in MongoDB I have Databases, Collections, Documents. 
+			dbOp = db.collection('products').insertOne(this)
+		}
+		return dbOp
 			.then(r => {
-				console.log('READY TO DELETEDELETEDELTEDELETE');
+				console.log('READY TO DELETEDELETEDELTEDELETE in the Product model');
 			})
 			.catch(err => console.log('PROD MODEL SAVE ERR?', err));
 	}
