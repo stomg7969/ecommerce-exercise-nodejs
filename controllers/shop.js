@@ -49,94 +49,30 @@ exports.getIndex = (req, res, next) => {
 		.catch(err => console.log('HAS ERR IN getIndex shop.js?', err));
 };
 exports.getCart = (req, res, next) => {
-	// Here, I am rendering list of products that is in the cart.json.
-	// But I also have to fetch from products because cart.json doesn't contain detail product info.
-	// So I will get products that overlap, and modify product structure to fit to cart page.
-	// Cart.getCart((cart) => {
-	// 	Product.fetchAll((products) => {
-	// 		// by creating empty array, there won't be an error even if cart is empty.
-	// 		const cartProducts = [];
-	// 		for (const product of products) {
-	// 			const cartProductObj = cart.products.find((prod) => prod.id === product.id);
-	// 			if (cartProductObj) {
-	// 				cartProducts.push({ product, qty: cartProductObj.qty });
-	// 			}
-	// 		}
-	// 		res.render('shop/cart', {
-	// 			pageTitle: 'Cart',
-	// 			path: '/cart',
-	// 			products: cartProducts
-	// 		});
-	// 	});
-	// });
-	// ------------ SEQUELIZE ------------
+	// I can call req.user because this is where I stored user object when first created.
 	req.user.getCart()
-		.then(cart => {
-			return cart.getProducts()
-				.then(products => {
-					res.render('shop/cart', {
-						pageTitle: 'Cart',
-						path: '/cart',
-						products: products
-					});
-				})
-				.catch(err => console.log('SHOP getCart ERR?', err));
+		.then(products => {
+			res.render('shop/cart', {
+				pageTitle: 'Cart',
+				path: '/cart',
+				products: products
+			});
 		})
-		.catch(err => console.log('SHOP getCart 2nd ERR?', err));
+		.catch(err => console.log('SHOP getCart ERR?', err));
 };
 exports.postCart = (req, res, next) => {
 	const prodId = req.body.productId;
-	// Product.findById(prodId, (product) => {
-	// 	Cart.addProduct(prodId, product.price);
-	// });
-	// res.redirect('/cart');
-	// ------------ SEQUELIZE ------------
-	let fetchedCart; // to store product into cart.
-	let newQty = 1;
-	// first, need to get cart that belongs to user.
-	req.user.getCart()
-		.then(cart => {
-			fetchedCart = cart;
-			return cart.getProducts({ where: { id: prodId } });
-		}) // get products that are in the cart.
-		.then(products => {
-			// In the cart, there might be no products.
-			let product;
-			if (products.length > 0) {
-				product = products[0];
-			}
-			if (product) {
-				const oldQty = product.cartItem.quantity;
-				newQty = oldQty + 1;
-				return product;
-			}
-			return Product.findByPk(prodId)
-		}) // If there are products in cart, update Qty, then return it, otherwise, return the 'clicked by user' product
+	// ------------ MONGODB ------------
+	Product.findById(prodId)
 		.then(product => {
-			// addProduct() is method added by sequelize
-			return fetchedCart.addProduct(product, {
-				through: { quantity: newQty }
-			});
-		}) // then, add it to cart, through cart item.
-		.then(() => res.redirect('/cart'))
-		.catch(err => console.log('SHOP postCart Err?', err));
+			req.user.addToCart(product);
+			res.redirect('/cart');
+		})
+		.catch(err => console.log('Adding prod to cart ERR?', err));
 };
 exports.postCartDeleteProduct = (req, res) => {
-	// Again, like delete product, I can use hidden input for price then pass it.
-	// ... here, I will just follow along with instruction.
 	const prodId = req.body.productId;
-	// findById is static custom function.
-	// Product.findById(prodId, (product) => {
-	// 	Cart.deleteProduct(prodId, product.price);
-	// 	res.redirect('/cart');
-	// });
-	// ------------ SEQUELIZE ------------
-	req.user.getCart()
-		.then(cart => cart.getProducts({ where: { id: prodId } }))
-		.then(products => {
-			const product = products[0];
-			return product.cartItem.destroy();
-		})
+	req.user.deleteItemFromCart(prodId)
 		.then(r => res.redirect('/cart'))
 		.catch(err => console.log('SHOP delete CART ERR?', err));
 };

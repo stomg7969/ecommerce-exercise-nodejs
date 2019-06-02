@@ -8,9 +8,10 @@
                 <ul>
                         <% products.forEach(prodObj => { %>
                         <li>
-                                <p><%= prodObj.title %>(<%= prodObj.cartItem.quantity %>)</p>
+                                <p><%= prodObj.title %>(<%= prodObj.quantity %>)</p>
+                                <!-- Now each product already has quantity. MongoDB -->
                                 <form action="/cart-delete-item" method="POST">
-                                        <input type="hidden" value="<%= prodObj.id %>" name="productId">
+                                        <input type="hidden" value="<%= prodObj._id %>" name="productId">
                                         <button class='btn' type='submit'>Delete</button>
                                 </form>
                         </li>
