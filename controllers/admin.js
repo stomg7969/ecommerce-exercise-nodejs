@@ -7,7 +7,6 @@ exports.getAddProduct = (req, res, next) => {
 		editing: false
 	});
 };
-
 exports.postAddProduct = (req, res) => {
 	const { title, imageUrl, price, description } = req.body;
 	const product = new Product(title, price, description, imageUrl);
@@ -18,7 +17,6 @@ exports.postAddProduct = (req, res) => {
 		})
 		.catch((err) => console.log('HAS ERR IN ADMIN CTRL?', err));
 };
-
 exports.getEditProduct = (req, res, next) => {
 	// .query is for checking query params in the url.
 	// so this path will work only when url has .../:id?edit=true
@@ -43,7 +41,6 @@ exports.getEditProduct = (req, res, next) => {
 			console.log('ADMIN EDIT PRD ERR?', err);
 		})
 };
-
 exports.postEditProduct = (req, res, next) => {
 	// updated information
 	const { productId, title, price, imageUrl, description } = req.body;
@@ -55,24 +52,17 @@ exports.postEditProduct = (req, res, next) => {
 		})
 		.catch(err => console.log('ADMIN postEdit ERR?', err));
 };
-
-// exports.postDeleteProduct = (req, res) => {
-// 	console.log('DELETING(in admin contrl).', req.body);
-// 	// I am also passing price to update cart.
-// 	// this is something I am trying on my own, not instructor's
-// 	const { productId, productPrice } = req.body;
-// 	// Product.delete(productId, parseFloat(productPrice));
-// 	// ------------- SEQUELIZE ---------------
-// 	Product.findByPk(productId)
-// 		// what about price?
-// 		.then(product => product.destroy())
-// 		.then(r => {
-// 			console.log('DESTROY SUCCESS.');
-// 			res.redirect('/admin/products');
-// 		})
-// 		.catch(err => console.log('ADMIN DELETE PROD ERR?', err));
-// };
-
+exports.postDeleteProduct = (req, res) => {
+	const { productId, productPrice } = req.body;
+	// ------------- SEQUELIZE ---------------
+	// what about price?
+	Product.deleteById(productId)
+		.then(() => {
+			console.log('DESTROY SUCCESS.');
+			res.redirect('/admin/products');
+		})
+		.catch(err => console.log('ADMIN DELETE PROD ERR?', err));
+};
 exports.getProducts = (req, res, next) => {
 	Product.fetchAll()
 		.then((products) => {

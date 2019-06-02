@@ -8,8 +8,9 @@ class Product {
 		this.price = price;
 		this.description = description;
 		this.imageUrl = imageUrl;
-		this._id = new mongodb.ObjectId(id);
+		this._id = id ? new mongodb.ObjectId(id) : null;
 	}
+	// right now, _id will always exist. I need ternary to make it null if id doesn't exist.
 	save() {
 		const db = getDb();
 		let dbOp;
@@ -24,10 +25,11 @@ class Product {
 			dbOp = db.collection('products').insertOne(this)
 		}
 		return dbOp
-			.then(r => {
-				console.log('READY TO DELETEDELETEDELTEDELETE in the Product model');
-			})
-			.catch(err => console.log('PROD MODEL SAVE ERR?', err));
+		// Why would I need .then, .catch here when I already have one in controller?
+		// .then(r => {
+		// 	console.log('READY TO DELETEDELETEDELTEDELETE in the Product model');
+		// })
+		// .catch(err => console.log('PROD MODEL SAVE ERR?', err));
 	}
 	static fetchAll() {
 		const db = getDb();
@@ -53,6 +55,14 @@ class Product {
 				return product;
 			})
 			.catch(err => console.log('model product findID ERR?', err));
+	}
+	static deleteById(id) {
+		const db = getDb();
+		db.collection('products').deleteOne({ _id: new mongodb.ObjectId(id) })
+			.then(r => {
+				console.log('Product Deleted');
+			})
+			.catch(err => console.log('product model delete ERR?', err));
 	}
 }
 
