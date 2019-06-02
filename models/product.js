@@ -3,14 +3,16 @@ const mongodb = require('mongodb');
 const getDb = require('../helper/database').getDb;
 
 class Product {
-	constructor(title, price, description, imageUrl, id) {
+	constructor(title, price, description, imageUrl, id, userId) {
 		this.title = title;
 		this.price = price;
 		this.description = description;
 		this.imageUrl = imageUrl;
 		this._id = id ? new mongodb.ObjectId(id) : null;
+		// need ternary to make it null if id doesn't exist.
+		this.userId = userId;
+		// user information telling that who created this product.
 	}
-	// right now, _id will always exist. I need ternary to make it null if id doesn't exist.
 	save() {
 		const db = getDb();
 		let dbOp;
@@ -58,11 +60,7 @@ class Product {
 	}
 	static deleteById(id) {
 		const db = getDb();
-		db.collection('products').deleteOne({ _id: new mongodb.ObjectId(id) })
-			.then(r => {
-				console.log('Product Deleted');
-			})
-			.catch(err => console.log('product model delete ERR?', err));
+		return db.collection('products').deleteOne({ _id: new mongodb.ObjectId(id) });
 	}
 }
 

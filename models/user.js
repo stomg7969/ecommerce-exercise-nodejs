@@ -1,18 +1,24 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../helper/database');
+// importing 'mongodb' because I need to create an id. MongoDB uses BSON and id is stored as ObjectId.
+const mongodb = require('mongodb');
+const getDb = require('../helper/database').getDb;
 
-const User = sequelize.define('user', {
-    id: {
-        type: Sequelize.INTEGER,
-        autoIncrement: true,
-        allowNull: false,
-        primaryKey: true
-    },
-    name: {
-        type: Sequelize.STRING,
-        allowNull: false
-    },
-    email: Sequelize.STRING
-});
+class User {
+    constructor(username, email) {
+        this.name = username;
+        this.email = email;
+    }
+    save() {
+        const db = getDb();
+        return db.collection('users').insertOne(this);
+    }
+    static findById(id) {
+        const db = getDb();
+        return db.collection('users')
+            // .find({ _id: new mongodb.ObjectId(id) }).next();
+            // This is the same as ...
+            .findOne({ _id: new mongodb.ObjectId(id) });
+        // .find may return multiple, that is why .next() is necessary.
+    }
+}
 
 module.exports = User;

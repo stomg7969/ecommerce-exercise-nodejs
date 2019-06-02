@@ -41,8 +41,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 // });
 // --------------- MongoDB -----------------
 const mongoConnect = require('./helper/database').mongoConnect;
+const User = require('./models/user');
+
 app.use((req, res, next) => {
-    next();
+    User.findById('5cf40c147d755355ac8eac29')
+        .then(user => {
+            req.user = user;
+            next();
+        })
+        .catch(err => console.log("APP find User ERR?", err))
 });
 
 app.use('/admin', adminRoutes);
@@ -61,6 +68,8 @@ mongoConnect(() => {
     // console.log(response); // response is the client.
     // keep in mind that I don't have to pass the cb. 
     // It was just to console.log the response.
+    // --------------- ID existance validation -----------------
+    // I need ID validation
     app.listen(3000);
 });
 
