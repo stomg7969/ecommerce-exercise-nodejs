@@ -1,3 +1,6 @@
+const dotenv = require('dotenv');
+dotenv.config();
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
@@ -47,7 +50,7 @@ app.use(errorController.renderError);
 // ODM --> A Object-Document Mapping Library
 // npm i --save mongoose
 const mongoose = require('mongoose');
-mongoose.connect('mongodb+srv://jane:jane@cluster0-kl0m7.mongodb.net/shop?retryWrites=true&w=majority', { useNewUrlParser: true })
+mongoose.connect(`mongodb+srv://${process.env.mongoID}:${process.env.mongoPW}@cluster0-kl0m7.mongodb.net/shop?retryWrites=true&w=majority`, { useNewUrlParser: true })
     .then(r => {
         console.log('CONNECT SUCCESSFUL');
         app.listen(3000);

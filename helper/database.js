@@ -1,5 +1,8 @@
 const dotenv = require('dotenv');
 dotenv.config();
+// This file is no longer connected to the app. 
+// This file is necessary when I use MongoDB only.
+// Now, I am using Mongoose, which does all of this below code behind the scene.
 // this file is for MongoDB exercise.
 const mongodb = require('mongodb');
 const MongoClient = mongodb.MongoClient;
@@ -8,7 +11,7 @@ let _db;
 
 const mongoConnect = (cb) => {
   // Make sure to change password
-  MongoClient.connect('mongodb+srv://jane:jane@cluster0-kl0m7.mongodb.net/shop?retryWrites=true&w=majority', { useNewUrlParser: true })
+  MongoClient.connect(`mongodb+srv://${process.env.mongoID}:${process.env.mongoPW}@cluster0-kl0m7.mongodb.net/shop?retryWrites=true&w=majority`, { useNewUrlParser: true })
     .then(client => {
       console.log('CONNECTED YO');
       _db = client.db(); // Since I did this, instead of connecting to 'test' (...mongodb.net/test?...) --> 'shop'.
