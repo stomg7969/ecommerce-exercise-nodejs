@@ -4,7 +4,8 @@ exports.getAddProduct = (req, res, next) => {
 	res.render('admin/edit-product', {
 		pageTitle: 'ADD PRODUCT',
 		path: '/admin/add-product',
-		editing: false
+		editing: false,
+		isAuthenticated: req.isLoggedIn
 	});
 };
 exports.postAddProduct = (req, res) => {
@@ -33,7 +34,8 @@ exports.getEditProduct = (req, res, next) => {
 				pageTitle: 'Edit PRODUCT',
 				path: '/admin/edit-product',
 				editing: editMode,
-				product: product
+				product: product,
+				isAuthenticated: req.isLoggedIn
 			});
 			// Remember, res.render is what I send information to view pages.
 		})
@@ -81,7 +83,8 @@ exports.getProducts = (req, res, next) => {
 			res.render('admin/products', {
 				products: products,
 				pageTitle: 'Admin Products',
-				path: '/admin/products'
+				path: '/admin/products',
+				isAuthenticated: req.isLoggedIn
 			});
 		})
 		.catch(err => console.log('admin getProducts ERR?', err));

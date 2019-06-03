@@ -8,7 +8,8 @@ exports.getProducts = (req, res, next) => {
 			res.render('shop/product-list', {
 				products: products,
 				pageTitle: 'All Products',
-				path: '/products'
+				path: '/products',
+				isAuthenticated: req.isLoggedIn
 			});
 		})
 		.catch(err => console.log('HAS ERR IN getIndex shop.js?', err));
@@ -20,7 +21,8 @@ exports.getProduct = (req, res, next) => {
 			res.render('shop/product-detail', {
 				product: product,
 				pageTitle: product.title,
-				path: '/products'
+				path: '/products',
+				isAuthenticated: req.isLoggedIn
 			})
 		})
 		.catch((err) => console.log('HAS ERR IN getProduct?', err));
@@ -31,7 +33,8 @@ exports.getIndex = (req, res, next) => {
 			res.render('shop/index', {
 				products: products,
 				pageTitle: 'Shop',
-				path: '/'
+				path: '/',
+				isAuthenticated: req.isLoggedIn
 			});
 		})
 		.catch(err => console.log('HAS ERR IN getIndex shop.js?', err));
@@ -46,7 +49,8 @@ exports.getCart = (req, res, next) => {
 			res.render('shop/cart', {
 				pageTitle: 'Cart',
 				path: '/cart',
-				productsInCart: products
+				productsInCart: products,
+				isAuthenticated: req.isLoggedIn
 			});
 		})
 		.catch(err => console.log('SHOP getCart ERR?', err));
@@ -101,7 +105,8 @@ exports.getOrders = (req, res, next) => {
 			res.render('shop/orders', {
 				pageTitle: 'Orders',
 				path: '/orders',
-				orders: orders // I can always check the structure of my orders in the MongoDB Compass.
+				orders: orders, // I can always check the structure of my orders in the MongoDB Compass.
+				isAuthenticated: req.isLoggedIn
 			});
 		})
 		.catch(err => console.log('SHOP getOrders ERR?', err));
