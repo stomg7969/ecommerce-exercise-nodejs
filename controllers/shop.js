@@ -1,11 +1,8 @@
-// const path = require("path");
-// const rootDir = require("../helper/path");
 const Product = require('../models/product');
-// We don't need to import Order and Cart from model anymore because we are using association.
-// Getting everything from user.
 
 exports.getProducts = (req, res, next) => {
-	Product.fetchAll()
+	Product.find() // static method given in the Mongoose documentation. Returns array
+		// IMPORTANT NOTE: If my data is large, then instead of fetching all products, use .curse().next(), or limit the data retrieved.
 		.then(products => {
 			res.render('shop/product-list', {
 				products: products,
@@ -17,17 +14,7 @@ exports.getProducts = (req, res, next) => {
 };
 exports.getProduct = (req, res, next) => {
 	const prodId = req.params.productId;
-	// Product.findById(prodId)
-	// 	//  Reason for [product] is ... it's like const { value } = req.body;
-	// 	.then(([product]) => {
-	// 		res.render('shop/product-detail', {
-	// 			// [product] will return the first element only, but in array. So I need to get the first index.
-	// 			product: product[0],
-	// 			pageTitle: product.title,
-	// 			path: '/products'
-	// 		});
-	// 	})
-	Product.findById(prodId)
+	Product.findById(prodId) // Mongoose already had findById, so we don't need to define it. So nice.
 		.then(product => {
 			res.render('shop/product-detail', {
 				product: product,
@@ -38,7 +25,7 @@ exports.getProduct = (req, res, next) => {
 		.catch((err) => console.log('HAS ERR IN getProduct?', err));
 };
 exports.getIndex = (req, res, next) => {
-	Product.fetchAll()
+	Product.find()
 		.then(products => {
 			res.render('shop/index', {
 				products: products,

@@ -9,8 +9,8 @@ exports.getAddProduct = (req, res, next) => {
 };
 exports.postAddProduct = (req, res) => {
 	const { title, imageUrl, price, description } = req.body;
-	const product = new Product(title, price, description, imageUrl, null, req.user._id);
-	product.save()
+	const product = new Product({ title, price, description, imageUrl }); // this is ES6 format, originally title: title.
+	product.save() // .save() is provided by Mongoose. wow.
 		.then(() => {
 			console.log('PRODUCT CREATED');
 			res.redirect('/');
@@ -25,7 +25,6 @@ exports.getEditProduct = (req, res, next) => {
 	if (!editMode) return res.redirect('/');
 
 	const prodId = req.params.productId;
-	// req.user.getProducts({ where: { id: prodId } })
 	Product.findById(prodId)
 		.then(product => {
 			if (!product) return res.redirect('/');
@@ -44,8 +43,16 @@ exports.getEditProduct = (req, res, next) => {
 exports.postEditProduct = (req, res, next) => {
 	// updated information
 	const { productId, title, price, imageUrl, description } = req.body;
-	const product = new Product(title, price, description, imageUrl, productId);
-	product.save()
+	// const product = new Product(title, price, description, imageUrl, productId);
+	// In Mongoose, I don't need to update with new instance, I can find the product by id, update, then save.
+	Product.findById(productId)
+		.then(product => {
+			product.title = title;
+			product.price = price;
+			product.description = description;
+			product.imageUrl = imageUrl;
+			return product.save();
+		})
 		.then(r => {
 			console.log('Product Updated SUCCESS!');
 			res.redirect('/admin/products');
@@ -56,7 +63,7 @@ exports.postDeleteProduct = (req, res) => {
 	const { productId, productPrice } = req.body;
 	// ------------- SEQUELIZE ---------------
 	// what about price?
-	Product.deleteById(productId)
+	Product.findByIdAndRemove(productId)
 		.then(r => {
 			console.log('DESTROY SUCCESS.');
 			res.redirect('/admin/products');
@@ -64,7 +71,7 @@ exports.postDeleteProduct = (req, res) => {
 		.catch(err => console.log('ADMIN DELETE PROD ERR?', err));
 };
 exports.getProducts = (req, res, next) => {
-	Product.fetchAll()
+	Product.find()
 		.then((products) => {
 			res.render('admin/products', {
 				products: products,

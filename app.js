@@ -1,6 +1,3 @@
-// const http = require('http');
-// const routes = require('./routes');
-// const myRoute = require('./route-exercise');
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
@@ -25,32 +22,18 @@ app.use(express.static(path.join(__dirname, 'public')));
 // directly forwarded to the file system.
 // doesn't get handled by express. 
 
-// Middle ware for SEQUELIZE ------------
-// I can store anything in the middleware / in my request so that I can use it anywhere in my app conveniently. 
+// --------------- MongoDB -----------------
+// const mongoConnect = require('./helper/database').mongoConnect;
+// const User = require('./models/user');
+
 // app.use((req, res, next) => {
-//     // This only a middleware, does not create user on its own. need the bottom lines.
-//     // This will NOT run automatically, only when requested. It's like reducer in Redux.
-//     User.findByPk(1)
+//     User.findById('5cf40c147d755355ac8eac29') // just this user for now.
 //         .then(user => {
-//             // storing into req.user. Like session. 
-//             req.user = user;
-//             // then call the next app.use below.
+//             req.user = new User(user.name, user.email, user.cart, user._id);
 //             next();
 //         })
-//         .catch(err => console.log('ERR in APP Middleware?', err));
+//         .catch(err => console.log("APP find User ERR?", err))
 // });
-// --------------- MongoDB -----------------
-const mongoConnect = require('./helper/database').mongoConnect;
-const User = require('./models/user');
-
-app.use((req, res, next) => {
-    User.findById('5cf40c147d755355ac8eac29') // just this user for now.
-        .then(user => {
-            req.user = new User(user.name, user.email, user.cart, user._id);
-            next();
-        })
-        .catch(err => console.log("APP find User ERR?", err))
-});
 
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
@@ -59,19 +42,17 @@ app.use(shopRoutes);
 // 404 error page should be the last one.
 app.use(errorController.renderError);
 
-// ------------ MONGODB ------------
-// npm install mongodb --save
-mongoConnect(() => {
-    // mongoConnect((response) => {
-    // because I decided to pass cb (from helper/database), I need cb argument for mongoConnect(<here>).
-    // the cb there also has an argument, the 'r'. Here, I'll say response.
-    // console.log(response); // response is the client.
-    // keep in mind that I don't have to pass the cb. 
-    // It was just to console.log the response.
-    // --------------- ID existance validation -----------------
-    // I need ID validation
-    app.listen(3000);
-});
+// ------------ MONGOOSE ------------
+// IMPORTANT NOTE, mongoose is based on MongoDB, make sure I UNDERSTAND MongoDB FIRST!!!!
+// ODM --> A Object-Document Mapping Library
+// npm i --save mongoose
+const mongoose = require('mongoose');
+mongoose.connect('mongodb+srv://jane:jane@cluster0-kl0m7.mongodb.net/shop?retryWrites=true&w=majority', { useNewUrlParser: true })
+    .then(r => {
+        console.log('CONNECT SUCCESSFUL');
+        app.listen(3000);
+    })
+    .catch(err => console.log("PROBLEM CONNECTING?", err));
 
 // npm init ...
 // npm install --save express
