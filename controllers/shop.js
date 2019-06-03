@@ -37,21 +37,24 @@ exports.getIndex = (req, res, next) => {
 };
 exports.getCart = (req, res, next) => {
 	// I can call req.user because this is where I stored user object when first created.
-	req.user.getCart()
-		.then(products => {
+	req.user.populate('cart.items.productId').execPopulate() // need .execPopulate to make promise to resolve, unless cb is called before .populate().
+		// again fetch data using .populate(). 
+		.then(user => {
+			// console.log(user.cart)
+			const products = user.cart.items;
 			res.render('shop/cart', {
 				pageTitle: 'Cart',
 				path: '/cart',
-				products: products
+				productsInCart: products
 			});
 		})
 		.catch(err => console.log('SHOP getCart ERR?', err));
 };
 exports.postCart = (req, res, next) => {
 	const prodId = req.body.productId;
-	// ------------ MONGODB ------------
 	Product.findById(prodId)
 		.then(product => {
+			// req.user is saved and stored from app.js.
 			req.user.addToCart(product);
 			res.redirect('/cart');
 		})

@@ -5,15 +5,15 @@
 <body>
         <%- include('../includes/navigation.ejs') %>
         <main>
-                <% if (products.length > 0) { %>
+                <% if (productsInCart.length > 0) { %>
                 <ul class="cart__item-list">
-                        <% products.forEach(prodObj => { %>
+                        <% productsInCart.forEach(item => { %>
                         <li class="cart__item">
-                                <h1><%= prodObj.title %></h1>
-                                <h2>Quantity: <%= prodObj.quantity %></h2>
+                                <h1><%= item.productId.title %></h1>
+                                <h2>Quantity: <%= item.quantity %></h2>
                                 <!-- Now each product already has quantity. MongoDB -->
                                 <form action="/cart-delete-item" method="POST">
-                                        <input type="hidden" value="<%= prodObj._id %>" name="productId">
+                                        <input type="hidden" value="<%= item.productId._id %>" name="productId">
                                         <button class='btn danger' type='submit'>Delete</button>
                                 </form>
                         </li>

@@ -25,18 +25,19 @@ app.use(express.static(path.join(__dirname, 'public')));
 // directly forwarded to the file system.
 // doesn't get handled by express. 
 
+const User = require('./models/user');
 // --------------- MongoDB -----------------
 // const mongoConnect = require('./helper/database').mongoConnect;
-// const User = require('./models/user');
 
-// app.use((req, res, next) => {
-//     User.findById('5cf40c147d755355ac8eac29') // just this user for now.
-//         .then(user => {
-//             req.user = new User(user.name, user.email, user.cart, user._id);
-//             next();
-//         })
-//         .catch(err => console.log("APP find User ERR?", err))
-// });
+// --------------- MiddleWare -----------------
+app.use((req, res, next) => {
+    User.findById('5cf56c93e59d2b1978fa71cc') // Just this user for now. because there is no login/signup
+        .then(user => {
+            req.user = user;
+            next();
+        })
+        .catch(err => console.log("APP find User ERR?", err))
+});
 
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
@@ -52,6 +53,21 @@ app.use(errorController.renderError);
 const mongoose = require('mongoose');
 mongoose.connect(`mongodb+srv://${process.env.mongoID}:${process.env.mongoPW}@cluster0-kl0m7.mongodb.net/shop?retryWrites=true&w=majority`, { useNewUrlParser: true })
     .then(r => {
+        User.findOne()
+            .then(user => {
+                if (!user) {
+                    // First, a User enters the shop with empty cart. So create instance first.
+                    // Just this user for now. because there is no login/signup
+                    const user = new User({
+                        name: 'Nate',
+                        email: 'nate@nate.com',
+                        cart: {
+                            items: []
+                        }
+                    });
+                    user.save();
+                }
+            });
         console.log('CONNECT SUCCESSFUL');
         app.listen(3000);
     })

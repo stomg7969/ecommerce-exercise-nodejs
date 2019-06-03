@@ -9,7 +9,8 @@ exports.getAddProduct = (req, res, next) => {
 };
 exports.postAddProduct = (req, res) => {
 	const { title, imageUrl, price, description } = req.body;
-	const product = new Product({ title, price, description, imageUrl }); // this is ES6 format, originally title: title.
+	const product = new Product({ title, price, description, imageUrl, userId: req.user }); // Mongoose can pick up just the id from the entire req.user.
+	// Above two lines are ES6 formats, originally title: title.
 	product.save() // .save() is provided by Mongoose. wow.
 		.then(() => {
 			console.log('PRODUCT CREATED');
@@ -72,6 +73,10 @@ exports.postDeleteProduct = (req, res) => {
 };
 exports.getProducts = (req, res, next) => {
 	Product.find()
+		// .select('title price -_id') // I can select which info to include and exclude. '-' will exclude from rendering.
+		// Mongoose utility method, this tells mongoose to populate a certain field with all detail info, not just id.
+		// .populate('userId', 'name') // it takes path as an argument. I defined it as userId, it could have been 'beefId'.
+		// The second argument will specifically tell .populate() to render what detail info and exclude the rest. Otherwise, render all info.
 		.then((products) => {
 			res.render('admin/products', {
 				products: products,

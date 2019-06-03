@@ -1,4 +1,62 @@
-// // importing 'mongodb' because I need to create an id. MongoDB uses BSON and id is stored as ObjectId.
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
+const userSchema = new Schema({
+    name: {
+        type: String,
+        required: true
+    },
+    email: {
+        type: String,
+        required: true
+    },
+    cart: {
+        items: [{
+            productId: {
+                type: Schema.Types.ObjectId,
+                ref: 'Product', // This is necessary when associating.
+                required: true
+            },
+            quantity: {
+                type: Number,
+                required: true
+            }
+        }]
+    }
+});
+// .methods key, which is an object that allows me to add more methods.
+// Arrow function will NOT work here. 'this' will point to completely different things.
+userSchema.methods.addToCart = function (product) {
+    // First, find the product if it's in the cart already.
+    // If not, it will return -1.
+    const cartProductIdx = this.cart.items.findIndex(cp => {
+        // find if there are products in the cart.
+        // IMPORTANT: because of the way MongoDB stores the data, two types are different. 
+        return cp.productId.toString() === product._id.toString();
+    });
+    let newQuantity = 1; // add 1 when product is added to cart.
+    const updatedCartItems = [...this.cart.items]; // copy items
+    // if there is product in the cart already, update quantity to new.
+    if (cartProductIdx >= 0) {
+        newQuantity = this.cart.items[cartProductIdx].quantity + 1;
+        updatedCartItems[cartProductIdx].quantity = newQuantity;
+    } else {
+        // If there isn't product in the cart, then push it in.
+        updatedCartItems.push({
+            // I will save the id as 'productId' !!!!!!!!!!!!
+            productId: product._id,
+            quantity: newQuantity
+        });
+    }
+    // now, the cart will be updated with copied(new) one.
+    const updatedCart = { items: updatedCartItems };
+    this.cart = updatedCart;
+    return this.save();
+}
+
+module.exports = mongoose.model('User', userSchema);
+
+// --------------- MongoDB ---------------
+// importing 'mongodb' because I need to create an id. MongoDB uses BSON and id is stored as ObjectId.
 // const mongodb = require('mongodb');
 // const getDb = require('../helper/database').getDb;
 
@@ -13,39 +71,6 @@
 //     save() {
 //         const db = getDb();
 //         return db.collection('users').insertOne(this);
-//     }
-//     addToCart(product) {
-//         // First, find the product if it's in the cart already.
-//         // If not, it will return -1.
-//         const cartProductIdx = this.cart.items.findIndex(cp => {
-//             // find if there are products in the cart.
-//             // IMPORTANT: because of the way MongoDB stores the data, two types are different. 
-//             return cp.productId.toString() === product._id.toString();
-//         });
-//         let newQuantity = 1; // add 1 when product is added to cart.
-//         const updatedCartItems = [...this.cart.items]; // copy items
-//         // if there is product in the cart already, update quantity to new.
-//         if (cartProductIdx >= 0) {
-//             newQuantity = this.cart.items[cartProductIdx].quantity + 1;
-//             updatedCartItems[cartProductIdx].quantity = newQuantity;
-//         } else {
-//             // If there isn't product in the cart, then push it in.
-//             updatedCartItems.push({
-//                 // I will save the id as 'productId' !!!!!!!!!!!!
-//                 productId: new mongodb.ObjectId(product._id),
-//                 quantity: 1
-//             });
-//         }
-//         // now, the cart will be updated with copied(new) one.
-//         const updatedCart = { items: updatedCartItems };
-
-//         const db = getDb();
-//         return db.collection('users')
-//             .updateOne(
-//                 { _id: new mongodb.ObjectId(this._id) },
-//                 // Tells how to update: Where I pass an object which hold all the information about which field to update. 
-//                 { $set: { cart: updatedCart } }
-//             );
 //     }
 //     getCart() {
 //         // This one is hard, make sure read thoroughly to understand.
