@@ -7,6 +7,7 @@ const path = require('path');
 
 const adminRoutes = require("./routes/admin");
 const shopRoutes = require('./routes/shop');
+const authRouters = require('./routes/auth');
 const errorController = require('./controllers/error');
 
 const app = express();
@@ -41,6 +42,7 @@ app.use((req, res, next) => {
 
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
+app.use(authRouters);
 // ---------------  -----------------
 
 // 404 error page should be the last one.
