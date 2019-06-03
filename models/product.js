@@ -23,7 +23,7 @@ const productSchema = new Schema({
 		type: Schema.Types.ObjectId,
 		ref: 'User', // This is necessary when associating.
 		required: true
-	}
+	} // to show which admin created this product.
 });
 // I can name this model anything. Product is the best of course.
 module.exports = mongoose.model('Product', productSchema);

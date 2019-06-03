@@ -33,23 +33,34 @@ userSchema.methods.addToCart = function (product) {
         // IMPORTANT: because of the way MongoDB stores the data, two types are different. 
         return cp.productId.toString() === product._id.toString();
     });
-    let newQuantity = 1; // add 1 when product is added to cart.
-    const updatedCartItems = [...this.cart.items]; // copy items
-    // if there is product in the cart already, update quantity to new.
+    // -----------------------------------
+    // let newQuantity = 1; // add 1 when product is added to cart.
+    // const updatedCartItems = [...this.cart.items]; // copy items
+    // // if there is product in the cart already, update quantity to new.
+    // if (cartProductIdx >= 0) {
+    //     newQuantity = this.cart.items[cartProductIdx].quantity + 1;
+    //     updatedCartItems[cartProductIdx].quantity = newQuantity;
+    // } else {
+    //     // If there isn't product in the cart, then push it in.
+    //     updatedCartItems.push({
+    //         // I will save the id as 'productId' !!!!!!!!!!!!
+    //         productId: product._id,
+    //         quantity: newQuantity
+    //     });
+    // }
+    // // now, the cart will be updated with copied(new) one.
+    // const updatedCart = { items: updatedCartItems };
+    // this.cart = updatedCart;
+    // ----------------------------------- I don't always have to copy items then pass down.
     if (cartProductIdx >= 0) {
-        newQuantity = this.cart.items[cartProductIdx].quantity + 1;
-        updatedCartItems[cartProductIdx].quantity = newQuantity;
+        this.cart.items[cartProductIdx].quantity++;
     } else {
-        // If there isn't product in the cart, then push it in.
-        updatedCartItems.push({
-            // I will save the id as 'productId' !!!!!!!!!!!!
+        this.cart.items.push({
             productId: product._id,
-            quantity: newQuantity
+            quantity: 1 // Later, users should be able to add more than 1 item prior to adding to cart.
         });
     }
-    // now, the cart will be updated with copied(new) one.
-    const updatedCart = { items: updatedCartItems };
-    this.cart = updatedCart;
+    // -----------------------------------
     return this.save();
 }
 userSchema.methods.removeFromCart = function (id) {
@@ -57,6 +68,10 @@ userSchema.methods.removeFromCart = function (id) {
         return item.productId.toString() !== id.toString();
     });
     this.cart.items = updatedCartItems;
+    return this.save();
+}
+userSchema.methods.clearCart = function () {
+    this.cart = { items: [] };
     return this.save();
 }
 
