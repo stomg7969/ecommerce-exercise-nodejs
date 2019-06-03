@@ -80,6 +80,35 @@ class User {
                 { $set: { cart: { items: updatedCartItems } } }
             );
     }
+    addOrder() {
+        const db = getDb();
+        return this.getCart() // I need this because I also need detail product info in the order, not just id.
+            .then(products => {
+                const order = {
+                    items: products,
+                    user: {
+                        _id: new mongodb.ObjectId(this._id),
+                        name: this.name
+                    }
+                };
+                // Here I am duplicating data because this will end up in the orders collection and in the users collection. 
+                // But it's okay because the user data in here might change for sure, but it doesn't need to be updated in all orders 
+                // ... orders are already made, the process is already done so there is no need to update.
+                // If I care, I will not duplicate in here.
+                return db.collection('orders').insertOne(order)
+            })
+            .then(r => {
+                this.cart = { items: [] };
+                return db.collection('users').updateOne(
+                    { _id: new mongodb.ObjectId(this._id) },
+                    { $set: { cart: { items: [] } } }
+                );
+            });
+    }
+    getOrders() {
+        const db = getDb();
+        return db.collection('orders').find({ 'user._id': new mongodb.ObjectId(this._id) }).toArray();
+    }
     static findById(id) {
         const db = getDb();
         return db.collection('users')

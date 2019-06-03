@@ -44,7 +44,7 @@ const mongoConnect = require('./helper/database').mongoConnect;
 const User = require('./models/user');
 
 app.use((req, res, next) => {
-    User.findById('5cf40c147d755355ac8eac29')
+    User.findById('5cf40c147d755355ac8eac29') // just this user for now.
         .then(user => {
             req.user = new User(user.name, user.email, user.cart, user._id);
             next();
