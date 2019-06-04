@@ -23,8 +23,14 @@ exports.postLogin = (req, res, next) => {
     .then(user => {
       req.session.isLoggedIn = true;
       req.session.user = user;
-      res.redirect('/');
+      // saving to session takes couple millie seconds. So I moved redirect to .then. 
+      // another possible way is doing ...session.save(), 
+      // req.session.save((err) => {
+      //   console.log(err);
+      //   res.redirect('/');
+      // })
     })
+    .then(r => res.redirect('/'))
     .catch(err => console.log("Auth postLogin ERR?", err));
 };
 exports.postLogout = (req, res, next) => {
