@@ -1,5 +1,6 @@
 const dotenv = require('dotenv');
 dotenv.config();
+const MONGODB_URI = `mongodb+srv://${process.env.mongoID}:${process.env.mongoPW}@cluster0-kl0m7.mongodb.net/shop?retryWrites=true&w=majority`;
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -7,6 +8,8 @@ const path = require('path');
 // Session management. I can use session with cookie.
 // npm i --save express-session
 const session = require('express-session');
+// npm i --save connect-mongodb-session, in addition to session, to save the session into mongoDB, not memory.
+const MongoDbStore = require('connect-mongodb-session')(session);
 
 const adminRoutes = require("./routes/admin");
 const shopRoutes = require('./routes/shop');
@@ -14,6 +17,11 @@ const authRouters = require('./routes/auth');
 const errorController = require('./controllers/error');
 
 const app = express();
+// connect-mongodb-session management
+const store = new MongoDbStore({
+    uri: MONGODB_URI,
+    collection: 'sessions'
+});
 
 app.set('view engine', 'ejs');
 // 'view engine' is part of express.js documentation.
@@ -34,7 +42,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Session: 
 // resave -> session will not be saved on every request done.
 // saveUninitialized -> also ensures no session saved for every request where doesn't need to be saved.
-app.use(session({ secret: 'my secret', resave: false, saveUninitialized: false }));
+app.use(session({
+    secret: 'my secret',
+    resave: false,
+    saveUninitialized: false,
+    store: store
+}));
 
 const User = require('./models/user');
 // --------------- MongoDB -----------------
@@ -64,7 +77,7 @@ app.use(errorController.renderError);
 // ODM --> A Object-Document Mapping Library
 // npm i --save mongoose
 const mongoose = require('mongoose');
-mongoose.connect(`mongodb+srv://${process.env.mongoID}:${process.env.mongoPW}@cluster0-kl0m7.mongodb.net/shop?retryWrites=true&w=majority`, { useNewUrlParser: true })
+mongoose.connect(MONGODB_URI, { useNewUrlParser: true })
     .then(r => {
         User.findOne()
             .then(user => {
