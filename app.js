@@ -6,6 +6,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
 // Session management. I can use session with cookie.
+// IMPORTANT NOTE :: Cookies are accessible by any users. That is why we use session to store sensitive info.
 // npm i --save express-session
 const session = require('express-session');
 // npm i --save connect-mongodb-session, in addition to session, to save the session into mongoDB, not memory.
