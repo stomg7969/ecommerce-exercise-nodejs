@@ -4,7 +4,7 @@ exports.getLogin = (req, res, next) => {
   res.render('auth/login', {
     pageTitle: 'Login',
     path: '/login',
-    isAuthenticated: req.session.isLoggedIn
+    isAuthenticated: false
   });
 };
 exports.postLogin = (req, res, next) => {
@@ -19,14 +19,19 @@ exports.postLogin = (req, res, next) => {
   // I use npm i --save connect-mongodb-session to save session in MongoDB.
   // Otherwise, session is saved in memory which will be a problem if I have thousands of users.
   User.findById('5cf56c93e59d2b1978fa71cc')
+    // this method used to be in app.js as middleware, but now it's here because I want to authenticate user ONLY WHEN they are logged in.
     .then(user => {
       req.session.isLoggedIn = true;
       req.session.user = user;
       res.redirect('/');
     })
     .catch(err => console.log("Auth postLogin ERR?", err));
-
-  res.redirect('/');
+};
+exports.postLogout = (req, res, next) => {
+  req.session.destroy((err) => {
+    console.log('ERR Logging out?', err);
+    res.redirect('/');
+  });
 };
 
 // I can use Cookie and Session together. 

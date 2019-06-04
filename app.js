@@ -9,7 +9,7 @@ const path = require('path');
 // npm i --save express-session
 const session = require('express-session');
 // npm i --save connect-mongodb-session, in addition to session, to save the session into mongoDB, not memory.
-const MongoDbStore = require('connect-mongodb-session')(session);
+const MongoDBStore = require('connect-mongodb-session')(session);
 
 const adminRoutes = require("./routes/admin");
 const shopRoutes = require('./routes/shop');
@@ -18,7 +18,7 @@ const errorController = require('./controllers/error');
 
 const app = express();
 // connect-mongodb-session management
-const store = new MongoDbStore({
+const store = new MongoDBStore({
     uri: MONGODB_URI,
     collection: 'sessions'
 });

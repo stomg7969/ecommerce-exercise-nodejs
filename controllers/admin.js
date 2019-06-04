@@ -10,7 +10,7 @@ exports.getAddProduct = (req, res, next) => {
 };
 exports.postAddProduct = (req, res) => {
 	const { title, imageUrl, price, description } = req.body;
-	const product = new Product({ title, price, description, imageUrl, userId: req.user }); // Mongoose can pick up just the id from the entire req.user.
+	const product = new Product({ title, price, description, imageUrl, userId: req.session.user }); // Mongoose can pick up just the id from the entire req.session.user.
 	// Above two lines are ES6 formats, originally title: title.
 	product.save() // .save() is provided by Mongoose. wow.
 		.then(() => {

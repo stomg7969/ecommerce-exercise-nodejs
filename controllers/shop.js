@@ -40,8 +40,7 @@ exports.getIndex = (req, res, next) => {
 		.catch(err => console.log('HAS ERR IN getIndex shop.js?', err));
 };
 exports.getCart = (req, res, next) => {
-	// I can call req.user because this is where I stored user object when first created.
-	req.user.populate('cart.items.productId').execPopulate() // need .execPopulate to make promise to resolve, unless cb is called before .populate().
+	req.session.user.populate('cart.items.productId').execPopulate() // need .execPopulate to make promise to resolve, unless cb is called before .populate().
 		// again fetch data using .populate(). 
 		.then(user => {
 			// console.log(user.cart)
@@ -59,21 +58,20 @@ exports.postCart = (req, res, next) => {
 	const prodId = req.body.productId;
 	Product.findById(prodId)
 		.then(product => {
-			// req.user is saved and stored from app.js.
-			req.user.addToCart(product);
+			req.session.user.addToCart(product);
 			res.redirect('/cart');
 		})
 		.catch(err => console.log('Adding prod to cart ERR?', err));
 };
 exports.postCartDeleteProduct = (req, res) => {
 	const prodId = req.body.productId;
-	req.user.removeFromCart(prodId) // custome method
+	req.session.user.removeFromCart(prodId) // custom method
 		.then(r => res.redirect('/cart'))
 		.catch(err => console.log('SHOP delete CART ERR?', err));
 };
 exports.postOrder = (req, res) => {
-	// first, fetch product info from req.user(user model).
-	req.user.populate('cart.items.productId').execPopulate()
+	// first, fetch product info from req.session.user(user model).
+	req.session.user.populate('cart.items.productId').execPopulate()
 		.then(user => {
 			// second, now fetched, loop through item to render not just productId, but other detail info.
 			const products = user.cart.items.map(item => {
@@ -85,8 +83,8 @@ exports.postOrder = (req, res) => {
 			// last, with retrieved info, create order model with them.
 			const order = new Order({
 				user: {
-					name: req.user.name,
-					userId: req.user
+					name: req.session.user.name,
+					userId: req.session.user
 				},
 				products
 			});
@@ -94,13 +92,13 @@ exports.postOrder = (req, res) => {
 			return order.save();
 		})
 		.then(r => {
-			req.user.clearCart(); // custom method created in model.
+			req.session.user.clearCart(); // custom method created in model.
 			res.redirect('/orders');
 		})
 		.catch(err => console.log('SHOP postOrder ERR?', err));
 };
 exports.getOrders = (req, res, next) => {
-	Order.find({ 'user.userId': req.user._id })
+	Order.find({ 'user.userId': req.session.user._id })
 		.then(orders => {
 			res.render('shop/orders', {
 				pageTitle: 'Orders',
