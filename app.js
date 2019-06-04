@@ -4,6 +4,9 @@ dotenv.config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
+// Session management. I can use session with cookie.
+// npm i --save express-session
+const session = require('express-session');
 
 const adminRoutes = require("./routes/admin");
 const shopRoutes = require('./routes/shop');
@@ -18,6 +21,8 @@ app.set('view engine', 'ejs');
 // 'pug' is templating engine that we downloaded.
 app.set('views', 'views');
 // first argument is like 'view engine', but the second 'views' is the directory name.
+
+// --------- Middleware ----------
 app.use(bodyParser.urlencoded({ extended: true }));
 // extended can also be false
 // https://stackoverflow.com/questions/29960764/what-does-extended-mean-in-express-4-0
@@ -25,6 +30,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 // directly forwarded to the file system.
 // doesn't get handled by express. 
+
+// Session: 
+// resave -> session will not be saved on every request done.
+// saveUninitialized -> also ensures no session saved for every request where doesn't need to be saved.
+app.use(session({ secret: 'my secret', resave: false, saveUninitialized: false }));
 
 const User = require('./models/user');
 // --------------- MongoDB -----------------
