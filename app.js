@@ -54,15 +54,15 @@ const User = require('./models/user');
 // const mongoConnect = require('./helper/database').mongoConnect;
 
 // --------------- MiddleWare -----------------
-app.use((req, res, next) => {
-    User.findById('5cf56c93e59d2b1978fa71cc') // Just this user for now. because there is no login/signup
-        .then(user => {
-            req.user = user; // this is like state, but it will not reset until there is respose (res).
-            // for example, if there is res.redirect right below, the req.user will be lost. 
-            next();
-        })
-        .catch(err => console.log("APP find User ERR?", err))
-});
+// app.use((req, res, next) => {
+//     User.findById('5cf56c93e59d2b1978fa71cc') // Just this user for now. because there is no login/signup
+//         .then(user => {
+//             req.user = user; // this is like state, but it will not reset until there is respose (res).
+//             // for example, if there is res.redirect right below, the req.user will be lost. 
+//             next();
+//         })
+//         .catch(err => console.log("APP find User ERR?", err))
+// });
 
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);

@@ -9,7 +9,7 @@ exports.getProducts = (req, res, next) => {
 				products: products,
 				pageTitle: 'All Products',
 				path: '/products',
-				isAuthenticated: req.isLoggedIn
+				isAuthenticated: req.session.isLoggedIn
 			});
 		})
 		.catch(err => console.log('HAS ERR IN getIndex shop.js?', err));
@@ -22,7 +22,7 @@ exports.getProduct = (req, res, next) => {
 				product: product,
 				pageTitle: product.title,
 				path: '/products',
-				isAuthenticated: req.isLoggedIn
+				isAuthenticated: req.session.isLoggedIn
 			})
 		})
 		.catch((err) => console.log('HAS ERR IN getProduct?', err));
@@ -34,7 +34,7 @@ exports.getIndex = (req, res, next) => {
 				products: products,
 				pageTitle: 'Shop',
 				path: '/',
-				isAuthenticated: req.isLoggedIn
+				isAuthenticated: req.session.isLoggedIn
 			});
 		})
 		.catch(err => console.log('HAS ERR IN getIndex shop.js?', err));
@@ -50,7 +50,7 @@ exports.getCart = (req, res, next) => {
 				pageTitle: 'Cart',
 				path: '/cart',
 				productsInCart: products,
-				isAuthenticated: req.isLoggedIn
+				isAuthenticated: req.session.isLoggedIn
 			});
 		})
 		.catch(err => console.log('SHOP getCart ERR?', err));
@@ -106,7 +106,7 @@ exports.getOrders = (req, res, next) => {
 				pageTitle: 'Orders',
 				path: '/orders',
 				orders: orders, // I can always check the structure of my orders in the MongoDB Compass.
-				isAuthenticated: req.isLoggedIn
+				isAuthenticated: req.session.isLoggedIn
 			});
 		})
 		.catch(err => console.log('SHOP getOrders ERR?', err));
