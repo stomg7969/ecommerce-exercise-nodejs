@@ -3,6 +3,8 @@ dotenv.config();
 // Download bcryptjs for reason I already know.
 // npm i --save bcryptjs 
 const bcrypt = require('bcryptjs');
+// Nodejs's default library, crypto ==> for resetting password.
+const crypto = require('crypto');
 // Sending email to users nodemailer with sendgrid
 // npm i --save nodemailer nodemailer-sendgrid-transport
 const nodemailer = require('nodemailer');
@@ -96,7 +98,7 @@ exports.postSignup = (req, res, next) => {
   const { email, password, confirmPassword } = req.body;
   if (password !== confirmPassword) {
     req.flash('error', 'Passwords do not match');
-    res.redirect('/signup');
+    return res.redirect('/signup');
   }
   User.findOne({ email })
     .then(userData => {
@@ -131,6 +133,88 @@ exports.postLogout = (req, res, next) => {
     console.log('ERR Logging out?', err);
     res.redirect('/');
   });
+};
+// Resetting password, must have working sendgrid.
+exports.getReset = (req, res, next) => {
+  let message = req.flash('error');
+  message.length > 0 ? message = message[0] : message = null;
+
+  res.render('auth/reset', {
+    path: '/reset',
+    pageTitle: 'Reset PW',
+    errorMessage: message
+  })
+};
+exports.postReset = (req, res, next) => {
+  crypto.randomBytes(32, (err, buffer) => { // generating random token. by using .randomBytes.
+    if (err) {
+      console.log('Password resetting failed. =>', err);
+      return res.redirect('/reset');
+    }
+    const token = buffer.toString('hex'); // Generate token here.
+    User.findOne({ email: req.body.email })
+      .then(user => {
+        if (!user) {
+          req.flash('error', 'No Account with that email found.');
+          return res.redirect('/reset');
+        }
+        user.resetToken = token;
+        user.resetTokenExpiration = Date.now() + 3600000; // expire token in an hour.
+        user.save()
+          .then(r => {
+            res.redirect('/');
+            transporter.sendMail({
+              to: req.body.email,
+              from: process.env.EMAIL,
+              subject: 'Password Reset',
+              html: `
+                <p>You requested a password reset</p>
+                <p>Click this <a href="http://localhost:3000/reset/${token}">Link</a> to set a new password.</p>
+              `
+            });
+          })
+      })
+      .catch(err => console.log('Auth postReset ERR', err));
+  });
+};
+exports.getNewPassword = (req, res, next) => {
+  const token = req.params.token;
+  User.findOne({ resetToken: token, resetTokenExpiration: { $gt: DataCue.new() } }) // $gt means greater than.
+    .then(user => {
+      let message = req.flash('error');
+      message.length > 0 ? message = message[0] : message = null;
+
+      res.render('auth/new-password', {
+        path: '/new-password',
+        pageTitle: 'New Password',
+        errorMessage: message,
+        userId: user._id.toString(),
+        passwordToken: token
+      });
+    })
+    .catch(err => console.log('Auth, getNewPassword', err));
+};
+exports.postNewPassword = (req, res, next) => {
+  const { password, userId, token } = req.body;
+  let resetUser;
+
+  User.findOne({
+    resetToken: token,
+    resetTokenExpiration: { $gt: Date.now() },
+    _id: userId
+  })
+    .then(user => {
+      resetUser = user;
+      return bcrypt.hash(password, 12)
+    })
+    .then(hashed => {
+      resetUser.password = hashed;
+      resetUser.resetToken = undefined;
+      resetUser.resetTokenExpiration = undefined;
+      return resetUser.save();
+    })
+    .then(r => res.redirect('/login'))
+    .catch(err => console.log('Auth postNewPassword', err));
 };
 
 // I can use Cookie and Session together. 
