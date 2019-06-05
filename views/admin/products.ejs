@@ -32,6 +32,7 @@
                         <input type="hidden" value='<%= product._id %>' name='productId'>
                         <!-- also passing price, update cart incase deleting product also exist in cart. -->
                         <input type="hidden" value='<%= product.price %>' name='productPrice'>
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                         <button class="btn" type="submit">Delete</button>
                     </form>
 

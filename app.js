@@ -11,6 +11,9 @@ const path = require('path');
 const session = require('express-session');
 // npm i --save connect-mongodb-session, in addition to session, to save the session into mongoDB, not memory.
 const MongoDBStore = require('connect-mongodb-session')(session);
+// CSURF - generates a random token every page rendered.
+const csrf = require('csurf');
+const csrfProtection = csrf();
 
 const adminRoutes = require("./routes/admin");
 const shopRoutes = require('./routes/shop');
@@ -49,6 +52,8 @@ app.use(session({
     saveUninitialized: false,
     store: store
 }));
+// Using csurf, .csrfToken() can be found in the req. 
+app.use(csrfProtection);
 
 const User = require('./models/user');
 // --------------- MongoDB -----------------
@@ -64,6 +69,12 @@ app.use((req, res, next) => {
             next();
         })
         .catch(err => console.log("APP find User ERR?", err))
+});
+// purpose of this middleware is to make dry code. When we pass render attributes to views.
+app.use((req, res, next) => {
+    res.locals.isAuthenticated = req.session.isLoggedIn;
+    res.locals.csrfToken = req.csrfToken();
+    next();
 });
 
 app.use('/admin', adminRoutes);
