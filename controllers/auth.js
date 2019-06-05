@@ -1,3 +1,6 @@
+// Download bcryptjs for reason I already know.
+// npm i --save bcryptjs 
+const bcrypt = require('bcryptjs');
 const User = require('../models/user');
 
 exports.getLogin = (req, res, next) => {
@@ -25,22 +28,61 @@ exports.postLogin = (req, res, next) => {
   // req.session.isLoggedIn = true;
   // I use npm i --save connect-mongodb-session to save session in MongoDB.
   // Otherwise, session is saved in memory which will be a problem if I have thousands of users.
-  User.findById('5cf56c93e59d2b1978fa71cc')
-    // this method used to be in app.js as middleware, but now it's here because I want to authenticate user ONLY WHEN they are logged in.
-    .then(user => {
-      req.session.isLoggedIn = true;
-      req.session.user = user;
-      // saving to session takes couple millie seconds. So I moved redirect to .then. 
-      // another possible way is doing ...session.save(), 
-      // req.session.save((err) => {
-      //   console.log(err);
-      //   res.redirect('/');
-      // })
+
+  // User.findById('5cf56c93e59d2b1978fa71cc')
+  //   // this method used to be in app.js as middleware, but now it's here because I want to authenticate user ONLY WHEN they are logged in.
+  //   .then(user => {
+  //     req.session.isLoggedIn = true;
+  //     req.session.user = user;
+  //     // saving to session takes couple millie seconds. So I moved redirect to .then. 
+  //     // another possible way is doing ...session.save(), 
+  //     // req.session.save((err) => {
+  //     //   console.log(err);
+  //     //   res.redirect('/');
+  //     // })
+  //   })
+  // -------------- Now I'm not using dummy user Id --------------
+  const { email, password } = req.body;
+  User.findOne({ email })
+    .then(userData => {
+      if (!userData) return res.redirect('/login');
+      bcrypt.compare(password, userData.password) // .compare() compares bcrypted pw with input pw. Returns a promise!!!
+        .then(confirmed => {
+          if (confirmed) {
+            req.session.isLoggedIn = true;
+            req.session.user = userData;
+            return req.session.save(err => {
+              console.log(err);
+              res.redirect('/');
+            });
+          }
+          res.redirect('/login');
+        })
+        .catch(err => console.log('Auth postLogin Err(inner)?', err));
     })
-    .then(r => res.redirect('/'))
     .catch(err => console.log("Auth postLogin ERR?", err));
 };
-exports.postSignup = (req, res, next) => { };
+exports.postSignup = (req, res, next) => {
+  const { email, password, confirmPassword } = req.body;
+  User.findOne({ email })
+    .then(userData => {
+      if (userData) {
+        console.log('Email already exists');
+        return res.redirect('/signup');
+      }
+      return bcrypt.hash(password, 12)
+        .then(hashPW => {
+          const user = new User({
+            email,
+            password: hashPW,
+            cart: { items: [] }
+          });
+          return user.save();
+        })
+    })
+    .then(r => res.redirect('/login'))
+    .catch(err => console.log('ERR fetching email in Auth postSignup?', err));
+};
 exports.postLogout = (req, res, next) => {
   req.session.destroy((err) => {
     console.log('ERR Logging out?', err);

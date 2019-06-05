@@ -81,21 +81,6 @@ app.use(errorController.renderError);
 const mongoose = require('mongoose');
 mongoose.connect(MONGODB_URI, { useNewUrlParser: true })
     .then(r => {
-        User.findOne()
-            .then(user => {
-                if (!user) {
-                    // First, a User enters the shop with empty cart. So create instance first.
-                    // Just this user for now. because there is no login/signup
-                    const user = new User({
-                        name: 'Nate',
-                        email: 'nate@nate.com',
-                        cart: {
-                            items: []
-                        }
-                    });
-                    user.save();
-                }
-            });
         console.log('CONNECT SUCCESSFUL');
         app.listen(3000);
     })
