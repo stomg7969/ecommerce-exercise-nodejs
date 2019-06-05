@@ -179,7 +179,7 @@ exports.postReset = (req, res, next) => {
 };
 exports.getNewPassword = (req, res, next) => {
   const token = req.params.token;
-  User.findOne({ resetToken: token, resetTokenExpiration: { $gt: DataCue.new() } }) // $gt means greater than.
+  User.findOne({ resetToken: token, resetTokenExpiration: { $gt: Date.now() } }) // $gt means greater than.
     .then(user => {
       let message = req.flash('error');
       message.length > 0 ? message = message[0] : message = null;
@@ -195,11 +195,11 @@ exports.getNewPassword = (req, res, next) => {
     .catch(err => console.log('Auth, getNewPassword', err));
 };
 exports.postNewPassword = (req, res, next) => {
-  const { password, userId, token } = req.body;
+  const { password, userId, passwordToken } = req.body;
   let resetUser;
 
   User.findOne({
-    resetToken: token,
+    resetToken: passwordToken,
     resetTokenExpiration: { $gt: Date.now() },
     _id: userId
   })

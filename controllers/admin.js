@@ -50,23 +50,26 @@ exports.postEditProduct = (req, res, next) => {
 	// In Mongoose, I don't need to update with new instance, I can find the product by id, update, then save.
 	Product.findById(productId)
 		.then(product => {
+			if (product.userId.toString() !== req.user._id.toString()) return res.redirect('/');
 			product.title = title;
 			product.price = price;
 			product.description = description;
 			product.imageUrl = imageUrl;
-			return product.save();
+			return product.save()
+				.then(r => {
+					console.log('Product Updated SUCCESS!');
+					res.redirect('/admin/products');
+				})
+				.catch(err => console.log('ADMIN postEdit ERR? 1', err));
 		})
-		.then(r => {
-			console.log('Product Updated SUCCESS!');
-			res.redirect('/admin/products');
-		})
-		.catch(err => console.log('ADMIN postEdit ERR?', err));
+		.catch(err => console.log('ADMIN postEdit ERR? 2', err));
 };
 exports.postDeleteProduct = (req, res) => {
 	const { productId, productPrice } = req.body;
 	// ------------- SEQUELIZE ---------------
 	// what about price?
-	Product.findByIdAndRemove(productId)
+	// Product.findByIdAndRemove(productId)
+	Product.deleteOne({ _id: productId, userId: req.user._id })
 		.then(r => {
 			console.log('DESTROY SUCCESS.');
 			res.redirect('/admin/products');
