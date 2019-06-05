@@ -1,6 +1,8 @@
 const Product = require('../models/product');
 
 exports.getAddProduct = (req, res, next) => {
+	// Since anyone can get access to this page without logging in by manually typing the url, I will create middleware.
+	// It is in the admin router.
 	res.render('admin/edit-product', {
 		pageTitle: 'ADD PRODUCT',
 		path: '/admin/add-product',

@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const shopController = require('../controllers/shop');
+// isAuth checks if user is authorized to have an access.
+const isAuth = require('../middleware/is-auth');
 
 // router.use("/", (req, res, next) => {
 // .use, .get does not matter.
@@ -8,10 +10,10 @@ const shopController = require('../controllers/shop');
 router.get("/", shopController.getIndex);
 router.get("/products", shopController.getProducts);
 router.get("/products/:productId", shopController.getProduct);
-router.get("/cart", shopController.getCart);
+router.get("/cart", isAuth, shopController.getCart);
 router.post("/cart", shopController.postCart);
 router.post('/cart-delete-item', shopController.postCartDeleteProduct);
 router.post('/create-order', shopController.postOrder);
-router.get("/orders", shopController.getOrders);
+router.get("/orders", isAuth, shopController.getOrders);
 
 module.exports = router;
