@@ -1,6 +1,26 @@
+const dotenv = require('dotenv');
+dotenv.config();
 // Download bcryptjs for reason I already know.
 // npm i --save bcryptjs 
 const bcrypt = require('bcryptjs');
+// Sending email to users nodemailer with sendgrid
+// npm i --save nodemailer nodemailer-sendgrid-transport
+const nodemailer = require('nodemailer');
+const sendgridTransport = require('nodemailer-sendgrid-transport');
+const transporter = nodemailer.createTransport(
+  sendgridTransport({
+    auth: {
+      api_key: process.env.SENDGRID_API_KEY
+    }
+  })
+);
+// const transporter = nodemailer.createTransport({
+//   service: 'gmail',
+//   auth: {
+//     user: process.env.EMAIL,
+//     pass: process.env.GMAILPW
+//   }
+// })
 const User = require('../models/user');
 
 exports.getLogin = (req, res, next) => {
@@ -94,9 +114,15 @@ exports.postSignup = (req, res, next) => {
           return user.save();
         })
         .then(r => {
-          console.log('Signup SUCCESSFUL!');
-          res.redirect('/login');
+          res.redirect('/login'); // .sendMail returns promise, but I don't have to wait because it's just sending email.
+          return transporter.sendMail({ // sendGrid sending email API.
+            to: email,
+            from: `Me <${process.env.EMAIL}>`,
+            subject: 'Signup Succeeded!',
+            html: '<h1>You successfully signed up!</h1>'
+          });
         })
+        .catch(err => console.log('SENDGRID ERR?', err));
     })
     .catch(err => console.log('ERR fetching email in Auth postSignup?', err));
 };
