@@ -8,8 +8,7 @@ exports.getProducts = (req, res, next) => {
 			res.render('shop/product-list', {
 				products: products,
 				pageTitle: 'All Products',
-				path: '/products',
-				isAuthenticated: req.session.isLoggedIn
+				path: '/products'
 			});
 		})
 		.catch(err => console.log('HAS ERR IN getIndex shop.js?', err));
@@ -21,8 +20,7 @@ exports.getProduct = (req, res, next) => {
 			res.render('shop/product-detail', {
 				product: product,
 				pageTitle: product.title,
-				path: '/products',
-				isAuthenticated: req.session.isLoggedIn
+				path: '/products'
 			})
 		})
 		.catch((err) => console.log('HAS ERR IN getProduct?', err));
@@ -47,8 +45,7 @@ exports.getCart = (req, res, next) => {
 			res.render('shop/cart', {
 				pageTitle: 'Cart',
 				path: '/cart',
-				productsInCart: products,
-				isAuthenticated: req.session.isLoggedIn
+				productsInCart: products
 			});
 		})
 		.catch(err => console.log('SHOP getCart ERR?', err));
@@ -82,7 +79,7 @@ exports.postOrder = (req, res) => {
 			// last, with retrieved info, create order model with them.
 			const order = new Order({
 				user: {
-					name: req.user.name,
+					email: req.user.email,
 					userId: req.user
 				},
 				products
@@ -102,8 +99,7 @@ exports.getOrders = (req, res, next) => {
 			res.render('shop/orders', {
 				pageTitle: 'Orders',
 				path: '/orders',
-				orders: orders, // I can always check the structure of my orders in the MongoDB Compass.
-				isAuthenticated: req.session.isLoggedIn
+				orders: orders // I can always check the structure of my orders in the MongoDB Compass.
 			});
 		})
 		.catch(err => console.log('SHOP getOrders ERR?', err));

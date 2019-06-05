@@ -14,6 +14,9 @@ const MongoDBStore = require('connect-mongodb-session')(session);
 // CSURF - generates a random token every page rendered.
 const csrf = require('csurf');
 const csrfProtection = csrf();
+// Session Flash - for error message and I know this.
+// npm i --save connect-flash
+const flash = require('connect-flash');
 
 const adminRoutes = require("./routes/admin");
 const shopRoutes = require('./routes/shop');
@@ -54,6 +57,8 @@ app.use(session({
 }));
 // Using csurf, .csrfToken() can be found in the req. 
 app.use(csrfProtection);
+// Flash MUST be called after the session.
+app.use(flash());
 
 const User = require('./models/user');
 // --------------- MongoDB -----------------

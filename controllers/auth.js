@@ -4,17 +4,23 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/user');
 
 exports.getLogin = (req, res, next) => {
+  let message = req.flash('error');
+  message.length > 0 ? message = message[0] : message = null;
+
   res.render('auth/login', {
     pageTitle: 'Login',
     path: '/login',
-    isAuthenticated: false
+    errorMessage: message
   });
 };
 exports.getSignup = (req, res) => {
+  let message = req.flash('error');
+  message.length > 0 ? message = message[0] : message = null;
+
   res.render('auth/signup', {
     path: '/signup',
     pageTitle: 'Signup',
-    isAuthenticated: false
+    errorMessage: message
   });
 };
 exports.postLogin = (req, res, next) => {
@@ -45,7 +51,10 @@ exports.postLogin = (req, res, next) => {
   const { email, password } = req.body;
   User.findOne({ email })
     .then(userData => {
-      if (!userData) return res.redirect('/login');
+      if (!userData) {
+        req.flash('error', 'Invalid Email or Password.');
+        return res.redirect('/login')
+      };
       bcrypt.compare(password, userData.password) // .compare() compares bcrypted pw with input pw. Returns a promise!!!
         .then(confirmed => {
           if (confirmed) {
@@ -56,6 +65,7 @@ exports.postLogin = (req, res, next) => {
               res.redirect('/');
             });
           }
+          req.flash('error', 'Invalid Email or Password.');
           res.redirect('/login');
         })
         .catch(err => console.log('Auth postLogin Err(inner)?', err));
@@ -64,10 +74,14 @@ exports.postLogin = (req, res, next) => {
 };
 exports.postSignup = (req, res, next) => {
   const { email, password, confirmPassword } = req.body;
+  if (password !== confirmPassword) {
+    req.flash('error', 'Passwords do not match');
+    res.redirect('/signup');
+  }
   User.findOne({ email })
     .then(userData => {
       if (userData) {
-        console.log('Email already exists');
+        req.flash('error', 'Email already exists');
         return res.redirect('/signup');
       }
       return bcrypt.hash(password, 12)
@@ -79,8 +93,11 @@ exports.postSignup = (req, res, next) => {
           });
           return user.save();
         })
+        .then(r => {
+          console.log('Signup SUCCESSFUL!');
+          res.redirect('/login');
+        })
     })
-    .then(r => res.redirect('/login'))
     .catch(err => console.log('ERR fetching email in Auth postSignup?', err));
 };
 exports.postLogout = (req, res, next) => {
