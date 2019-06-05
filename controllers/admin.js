@@ -74,7 +74,7 @@ exports.postDeleteProduct = (req, res) => {
 		.catch(err => console.log('ADMIN DELETE PROD ERR?', err));
 };
 exports.getProducts = (req, res, next) => {
-	Product.find()
+	Product.find({ userId: req.user._id })
 		// .select('title price -_id') // I can select which info to include and exclude. '-' will exclude from rendering.
 		// Mongoose utility method, this tells mongoose to populate a certain field with all detail info, not just id.
 		// .populate('userId', 'name') // it takes path as an argument. I defined it as userId, it could have been 'beefId'.
