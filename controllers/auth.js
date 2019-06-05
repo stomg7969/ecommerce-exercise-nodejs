@@ -7,6 +7,13 @@ exports.getLogin = (req, res, next) => {
     isAuthenticated: false
   });
 };
+exports.getSignup = (req, res) => {
+  res.render('auth/signup', {
+    path: '/signup',
+    pageTitle: 'Signup',
+    isAuthenticated: false
+  });
+};
 exports.postLogin = (req, res, next) => {
   // res.setHeader('Set-Cookie', 'loggedIn=true; HttpOnly'); // LIke localStorage.setItem / removeItem. I can set multiple cookies with ';'
   // I can check the cookie in Chrome -> Application -> Cookies -> <the URL I am using>.
@@ -33,6 +40,7 @@ exports.postLogin = (req, res, next) => {
     .then(r => res.redirect('/'))
     .catch(err => console.log("Auth postLogin ERR?", err));
 };
+exports.postSignup = (req, res, next) => { };
 exports.postLogout = (req, res, next) => {
   req.session.destroy((err) => {
     console.log('ERR Logging out?', err);
