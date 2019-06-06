@@ -14,15 +14,4 @@
 
 ### LEARNING
 
-- 2xx (Success)
-  - 200 (Operation succeeded)
-  - 201 (Success, resource created)
-- 3xx (redirect)
-  - 301 (Moved permanently)
-- 4xx (Client-side error)
-  - 401 (Not authenticated)
-  - 403 (Not authorized)
-  - 404 (Not found)
-  - 422 (Invalid input)
-- 5xx (Server-side error)
-  - 500 (Server-side error)
+Available Status Codes [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status)
