@@ -5,6 +5,9 @@ dotenv.config();
 const bcrypt = require('bcryptjs');
 // Nodejs's default library, crypto ==> for resetting password.
 const crypto = require('crypto');
+// Validator: check auth routes file for details
+// validationResult gathers all errors
+const { validationResult } = require('express-validator/check');
 // Sending email to users nodemailer with sendgrid
 // npm i --save nodemailer nodemailer-sendgrid-transport
 const nodemailer = require('nodemailer');
@@ -95,38 +98,35 @@ exports.postLogin = (req, res, next) => {
     .catch(err => console.log("Auth postLogin ERR?", err));
 };
 exports.postSignup = (req, res, next) => {
-  const { email, password, confirmPassword } = req.body;
-  if (password !== confirmPassword) {
-    req.flash('error', 'Passwords do not match');
-    return res.redirect('/signup');
+  const { email, password } = req.body;
+  const errors = validationResult(req);
+  // errors will show which one is problematic. it shows location, param, value, err msg
+  if (!errors.isEmpty()) {
+    return res.status(422).render('auth/signup', {
+      path: '/signup',
+      pageTitle: 'Signup',
+      errorMessage: errors.array()[0].msg
+    });
   }
-  User.findOne({ email })
-    .then(userData => {
-      if (userData) {
-        req.flash('error', 'Email already exists');
-        return res.redirect('/signup');
-      }
-      return bcrypt.hash(password, 12)
-        .then(hashPW => {
-          const user = new User({
-            email,
-            password: hashPW,
-            cart: { items: [] }
-          });
-          return user.save();
-        })
-        .then(r => {
-          res.redirect('/login'); // .sendMail returns promise, but I don't have to wait because it's just sending email.
-          return transporter.sendMail({ // sendGrid sending email API.
-            to: email,
-            from: `Me <${process.env.EMAIL}>`,
-            subject: 'Signup Succeeded!',
-            html: '<h1>You successfully signed up!</h1>'
-          });
-        })
-        .catch(err => console.log('SENDGRID ERR?', err));
+  bcrypt.hash(password, 12)
+    .then(hashPW => {
+      const user = new User({
+        email,
+        password: hashPW,
+        cart: { items: [] }
+      });
+      return user.save();
     })
-    .catch(err => console.log('ERR fetching email in Auth postSignup?', err));
+    .then(r => {
+      res.redirect('/login'); // .sendMail returns promise, but I don't have to wait because it's just sending email.
+      return transporter.sendMail({ // sendGrid sending email API.
+        to: email,
+        from: `Me <${process.env.EMAIL}>`,
+        subject: 'Signup Succeeded!',
+        html: '<h1>You successfully signed up!</h1>'
+      });
+    })
+    .catch(err => console.log('SENDGRID ERR?', err));
 };
 exports.postLogout = (req, res, next) => {
   req.session.destroy((err) => {
@@ -229,7 +229,7 @@ exports.getUpdatePassword = (req, res) => {
 // change PW while logged in
 exports.postUpdatePassword = (req, res) => {
   const { password, newPassword, confirmPassword } = req.body;
-  if (newPassword !== confirmPassword) {
+  if (newPassword !== confirmPassword) { // I can also validate this in the routes file. (see postSignup).
     req.flash('error', 'Confirm password again');
     return res.redirect('/update-password');
   }
