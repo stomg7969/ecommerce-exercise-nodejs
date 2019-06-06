@@ -61,8 +61,10 @@ exports.getEditProduct = (req, res, next) => {
 			// Remember, res.render is what I send information to view pages.
 		})
 		.catch(err => {
-			console.log('ADMIN EDIT PRD ERR?', err);
-		})
+			const error = new Error(err);
+			error.httpStatusCode = 500;
+			return next(error);
+		});
 };
 exports.postEditProduct = (req, res, next) => {
 	// updated information
@@ -93,9 +95,12 @@ exports.postEditProduct = (req, res, next) => {
 					console.log('Product Updated SUCCESS!');
 					res.redirect('/admin/products');
 				})
-				.catch(err => console.log('ADMIN postEdit ERR? 1', err));
 		})
-		.catch(err => console.log('ADMIN postEdit ERR? 2', err));
+		.catch(err => {
+			const error = new Error(err);
+			error.httpStatusCode = 500;
+			return next(error);
+		});
 };
 exports.postDeleteProduct = (req, res) => {
 	const { productId, productPrice } = req.body;
@@ -107,7 +112,11 @@ exports.postDeleteProduct = (req, res) => {
 			console.log('DESTROY SUCCESS.');
 			res.redirect('/admin/products');
 		})
-		.catch(err => console.log('ADMIN DELETE PROD ERR?', err));
+		.catch(err => {
+			const error = new Error(err);
+			error.httpStatusCode = 500;
+			return next(error);
+		});
 };
 exports.getProducts = (req, res, next) => {
 	Product.find({ userId: req.user._id })
@@ -122,5 +131,9 @@ exports.getProducts = (req, res, next) => {
 				path: '/admin/products'
 			});
 		})
-		.catch(err => console.log('admin getProducts ERR?', err));
+		.catch(err => {
+			const error = new Error(err);
+			error.httpStatusCode = 500;
+			return next(error);
+		});
 };

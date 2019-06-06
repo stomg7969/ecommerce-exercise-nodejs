@@ -96,9 +96,17 @@ exports.postLogin = (req, res, next) => {
           req.flash('error', 'Invalid Email or Password.');
           res.redirect('/login');
         })
-        .catch(err => console.log('Auth postLogin Err(inner)?', err));
+        .catch(err => {
+          const error = new Error(err);
+          error.httpStatusCode = 500;
+          return next(error);
+        });
     })
-    .catch(err => console.log("Auth postLogin ERR?", err));
+    .catch(err => {
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
+    });
 };
 exports.postSignup = (req, res, next) => {
   const { email, password } = req.body;
@@ -131,7 +139,11 @@ exports.postSignup = (req, res, next) => {
         html: '<h1>You successfully signed up!</h1>'
       });
     })
-    .catch(err => console.log('SENDGRID ERR?', err));
+    .catch(err => {
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
+    });
 };
 exports.postLogout = (req, res, next) => {
   req.session.destroy((err) => {
@@ -179,7 +191,11 @@ exports.postReset = (req, res, next) => {
             });
           })
       })
-      .catch(err => console.log('Auth postReset ERR', err));
+      .catch(err => {
+        const error = new Error(err);
+        error.httpStatusCode = 500;
+        return next(error);
+      });
   });
 };
 exports.getNewPassword = (req, res, next) => {
@@ -189,7 +205,7 @@ exports.getNewPassword = (req, res, next) => {
       let message = req.flash('error');
       message.length > 0 ? message = message[0] : message = null;
 
-      res.render('auth/new-password', {
+      return res.render('auth/new-password', {
         path: '/new-password',
         pageTitle: 'New Password',
         errorMessage: message,
@@ -197,7 +213,11 @@ exports.getNewPassword = (req, res, next) => {
         passwordToken: token
       });
     })
-    .catch(err => console.log('Auth, getNewPassword', err));
+    .catch(err => {
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
+    });
 };
 exports.postNewPassword = (req, res, next) => {
   const { password, userId, passwordToken } = req.body;
@@ -219,7 +239,11 @@ exports.postNewPassword = (req, res, next) => {
       return resetUser.save();
     })
     .then(r => res.redirect('/login'))
-    .catch(err => console.log('Auth postNewPassword', err));
+    .catch(err => {
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
+    });
 };
 exports.getUpdatePassword = (req, res) => {
   let message = req.flash('error');
@@ -277,9 +301,10 @@ exports.postUpdatePassword = (req, res) => {
         })
     })
     .catch(err => {
-      req.flash('error', 'Something wrong with user info, try again');
-      res.redirect('/update-password');
-    })
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
+    });
 };
 
 // I can use Cookie and Session together. 

@@ -93,6 +93,11 @@ app.use(authRouters);
 app.get('/500', errorController.get500);
 // 404 error page should be the last one.
 app.use(errorController.renderError);
+// Error handling middleware.
+app.use((error, req, res, next) => {
+    res.redirect('/500');
+    // res.render('/500');
+});
 
 // ------------ MONGOOSE ------------
 // IMPORTANT NOTE, mongoose is based on MongoDB, make sure I UNDERSTAND MongoDB FIRST!!!!

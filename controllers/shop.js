@@ -11,7 +11,11 @@ exports.getProducts = (req, res, next) => {
 				path: '/products'
 			});
 		})
-		.catch(err => console.log('HAS ERR IN getIndex shop.js?', err));
+		.catch(err => {
+			const error = new Error(err);
+			error.httpStatusCode = 500;
+			return next(error);
+		});
 };
 exports.getProduct = (req, res, next) => {
 	const prodId = req.params.productId;
@@ -23,7 +27,11 @@ exports.getProduct = (req, res, next) => {
 				path: '/products'
 			})
 		})
-		.catch((err) => console.log('HAS ERR IN getProduct?', err));
+		.catch(err => {
+			const error = new Error(err);
+			error.httpStatusCode = 500;
+			return next(error);
+		});
 };
 exports.getIndex = (req, res, next) => {
 	Product.find()
@@ -34,7 +42,11 @@ exports.getIndex = (req, res, next) => {
 				path: '/'
 			});
 		})
-		.catch(err => console.log('HAS ERR IN getIndex shop.js?', err));
+		.catch(err => {
+			const error = new Error(err);
+			error.httpStatusCode = 500;
+			return next(error);
+		});
 };
 exports.getCart = (req, res, next) => {
 	req.user.populate('cart.items.productId').execPopulate() // need .execPopulate to make promise to resolve, unless cb is called before .populate().
@@ -48,7 +60,11 @@ exports.getCart = (req, res, next) => {
 				productsInCart: products
 			});
 		})
-		.catch(err => console.log('SHOP getCart ERR?', err));
+		.catch(err => {
+			const error = new Error(err);
+			error.httpStatusCode = 500;
+			return next(error);
+		});
 };
 exports.postCart = (req, res, next) => {
 	const prodId = req.body.productId;
@@ -57,13 +73,21 @@ exports.postCart = (req, res, next) => {
 			req.user.addToCart(product);
 			res.redirect('/cart');
 		})
-		.catch(err => console.log('Adding prod to cart ERR?', err));
+		.catch(err => {
+			const error = new Error(err);
+			error.httpStatusCode = 500;
+			return next(error);
+		});
 };
 exports.postCartDeleteProduct = (req, res) => {
 	const prodId = req.body.productId;
 	req.user.removeFromCart(prodId) // custom method
 		.then(r => res.redirect('/cart'))
-		.catch(err => console.log('SHOP delete CART ERR?', err));
+		.catch(err => {
+			const error = new Error(err);
+			error.httpStatusCode = 500;
+			return next(error);
+		});
 };
 exports.postOrder = (req, res) => {
 	// first, fetch product info from req.user(user model).
@@ -91,7 +115,11 @@ exports.postOrder = (req, res) => {
 			req.user.clearCart(); // custom method created in model.
 			res.redirect('/orders');
 		})
-		.catch(err => console.log('SHOP postOrder ERR?', err));
+		.catch(err => {
+			const error = new Error(err);
+			error.httpStatusCode = 500;
+			return next(error);
+		});
 };
 exports.getOrders = (req, res, next) => {
 	Order.find({ 'user.userId': req.user._id })
@@ -102,5 +130,9 @@ exports.getOrders = (req, res, next) => {
 				orders: orders // I can always check the structure of my orders in the MongoDB Compass.
 			});
 		})
-		.catch(err => console.log('SHOP getOrders ERR?', err));
+		.catch(err => {
+			const error = new Error(err);
+			error.httpStatusCode = 500;
+			return next(error);
+		});
 };
