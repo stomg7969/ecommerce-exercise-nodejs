@@ -64,8 +64,16 @@ const User = require('./models/user');
 // --------------- MongoDB -----------------
 // const mongoConnect = require('./helper/database').mongoConnect;
 
+// purpose of this middleware is to make dry code. When we pass render attributes to views.
+app.use((req, res, next) => {
+    res.locals.isAuthenticated = req.session.isLoggedIn;
+    res.locals.csrfToken = req.csrfToken();
+    next();
+});
 // --------------- MiddleWare -----------------
 app.use((req, res, next) => {
+    // IMPORTANT NOTE: Outside of the promise is synchronous. So when there is an error, .catch()/express can detect the error.
+    // ... however, if it's inside the .then(), which is promise, asynchronous, .catch()/express will not detect the error.
     if (!req.session.user) return next();
     User.findById(req.session.user._id)
         .then(user => {
@@ -75,14 +83,8 @@ app.use((req, res, next) => {
             next();
         })
         .catch(err => {
-            throw new Error(err);
+            next(new Error(err));
         });
-});
-// purpose of this middleware is to make dry code. When we pass render attributes to views.
-app.use((req, res, next) => {
-    res.locals.isAuthenticated = req.session.isLoggedIn;
-    res.locals.csrfToken = req.csrfToken();
-    next();
 });
 
 app.use('/admin', adminRoutes);
@@ -95,8 +97,13 @@ app.get('/500', errorController.get500);
 app.use(errorController.renderError);
 // Error handling middleware.
 app.use((error, req, res, next) => {
-    res.redirect('/500');
+    // res.redirect('/500');
     // res.render('/500');
+    res.status(500).render("500", {
+        pageTitle: 'Error 500',
+        path: '500',
+        isAuthenticated: req.session.isLoggedIn
+    });
 });
 
 // ------------ MONGOOSE ------------

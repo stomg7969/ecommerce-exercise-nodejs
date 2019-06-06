@@ -99,7 +99,7 @@ exports.postEditProduct = (req, res, next) => {
 		.catch(err => {
 			const error = new Error(err);
 			error.httpStatusCode = 500;
-			return next(error);
+			return next(error); // If I call next() with error as an argument, it will call 500 error middleware in app.js
 		});
 };
 exports.postDeleteProduct = (req, res) => {
