@@ -30,12 +30,15 @@ router.post(
             }
             return true; // Still works without this.
           });
-      }),
+      })
+      .normalizeEmail(), // deletes any white spaces and .toLowerCase(). Literally normalizes user input.
     // body() checks 'password' value only in the body.
     body('password', 'The 2nd arg here becomes the default error message.') // I don't have to .withMessage() after every call method.
       .isLength({ min: 5, max: 25 })
-      .isAlphanumeric(),
+      .isAlphanumeric()
+      .trim(), // trims white space.
     body('confirmPassword')
+      .trim()
       .custom((value, { req }) => {
         if (value !== req.body.password) {
           throw new Error('Passwords have to match');
