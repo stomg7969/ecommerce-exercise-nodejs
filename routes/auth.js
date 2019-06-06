@@ -32,13 +32,13 @@ router.post(
           });
       })
       .normalizeEmail(), // deletes any white spaces and .toLowerCase(). Literally normalizes user input.
-    // body() checks 'password' value only in the body.
+    // body() checks 'password' value only in the body. ==> SANITIZING
     body('password', 'The 2nd arg here becomes the default error message.') // I don't have to .withMessage() after every call method.
       .isLength({ min: 5, max: 25 })
       .isAlphanumeric()
-      .trim(), // trims white space.
+      .trim(), // trims white space. ==> It's called SANITIZING. 
     body('confirmPassword')
-      .trim()
+      .trim() // SANITIZING
       .custom((value, { req }) => {
         if (value !== req.body.password) {
           throw new Error('Passwords have to match');

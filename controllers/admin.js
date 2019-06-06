@@ -1,3 +1,4 @@
+const { validationResult } = require('express-validator/check');
 const Product = require('../models/product');
 
 exports.getAddProduct = (req, res, next) => {
@@ -6,11 +7,26 @@ exports.getAddProduct = (req, res, next) => {
 	res.render('admin/edit-product', {
 		pageTitle: 'ADD PRODUCT',
 		path: '/admin/add-product',
-		editing: false
+		editing: false,
+		hasError: false,
+		errorMessage: null,
+		validationErrors: []
 	});
 };
 exports.postAddProduct = (req, res) => {
 	const { title, imageUrl, price, description } = req.body;
+	const errors = validationResult(req);
+	if (!errors.isEmpty()) {
+		return res.status(422).render('admin/edit-product', {
+			pageTitle: 'ADD PRODUCT',
+			path: '/admin/add-product',
+			editing: false,
+			hasError: true,
+			product: { title, imageUrl, price, description }, // For old input to refilling purpose?
+			errorMessage: errors.array()[0].msg,
+			validationErrors: errors.array()
+		})
+	}
 	const product = new Product({ title, price, description, imageUrl, userId: req.user }); // Mongoose can pick up just the id from the entire req.user.
 	// Above two lines are ES6 formats, originally title: title.
 	product.save() // .save() is provided by Mongoose. wow.
@@ -35,7 +51,10 @@ exports.getEditProduct = (req, res, next) => {
 				pageTitle: 'Edit PRODUCT',
 				path: '/admin/edit-product',
 				editing: editMode,
-				product: product
+				product: product,
+				hasError: false,
+				errorMessage: null,
+				validationErrors: []
 			});
 			// Remember, res.render is what I send information to view pages.
 		})
@@ -46,6 +65,18 @@ exports.getEditProduct = (req, res, next) => {
 exports.postEditProduct = (req, res, next) => {
 	// updated information
 	const { productId, title, price, imageUrl, description } = req.body;
+	const errors = validationResult(req);
+	if (!errors.isEmpty()) {
+		return res.status(422).render('admin/edit-product', {
+			pageTitle: 'EDIT PRODUCT',
+			path: '/admin/edit-product',
+			editing: true,
+			hasError: true,
+			product: { _id: productId, title, imageUrl, price, description }, // For old input to refilling purpose?
+			errorMessage: errors.array()[0].msg,
+			validationErrors: errors.array()
+		})
+	}
 	// const product = new Product(title, price, description, imageUrl, productId);
 	// In Mongoose, I don't need to update with new instance, I can find the product by id, update, then save.
 	Product.findById(productId)

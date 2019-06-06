@@ -39,8 +39,8 @@ exports.getLogin = (req, res, next) => {
   });
 };
 exports.getSignup = (req, res) => {
-  // let message = req.flash('error');
-  let message = ''; // Since I am using express-validator, I don't need flash, but good to have it just in case;
+  let message = req.flash('error'); // Since I am using express-validator, I don't need flash, but good to have it just in case;
+  // I can just put null at the bottom for errorMessage.
   message.length > 0 ? message = message[0] : message = null;
 
   res.render('auth/signup', {
