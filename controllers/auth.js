@@ -216,6 +216,47 @@ exports.postNewPassword = (req, res, next) => {
     .then(r => res.redirect('/login'))
     .catch(err => console.log('Auth postNewPassword', err));
 };
+exports.getUpdatePassword = (req, res) => {
+  let message = req.flash('error');
+  message.length > 0 ? message = message[0] : message = null;
+
+  res.render('auth/update-password', {
+    path: '/update-password',
+    pageTitle: 'Update Password',
+    errorMessage: message
+  });
+};
+// change PW while logged in
+exports.postUpdatePassword = (req, res) => {
+  const { password, newPassword, confirmPassword } = req.body;
+  if (newPassword !== confirmPassword) {
+    req.flash('error', 'Confirm password again');
+    return res.redirect('/update-password');
+  }
+  User.findOne({ _id: req.user._id })
+    .then(userData => {
+      bcrypt.compare(password, userData.password)
+        .then(confirmed => {
+          if (confirmed) {
+            bcrypt.hash(newPassword, 12)
+              .then(hashed => {
+                userData.password = hashed;
+                return userData.save();
+              })
+              .then(r => {
+                res.redirect('/');
+              })
+          } else {
+            req.flash('error', 'Incorrect Password');
+            res.redirect('/update-password');
+          }
+        })
+    })
+    .catch(err => {
+      req.flash('error', 'Something wrong with user info, try again');
+      res.redirect('/update-password');
+    })
+};
 
 // I can use Cookie and Session together. 
 // I store more sensitive info in session, then I can associate with Cookie. Encrypted.
