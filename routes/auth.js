@@ -53,6 +53,17 @@ router.get('/reset/:token', authController.getNewPassword);
 router.post('/new-password', authController.postNewPassword);
 
 router.get('/update-password', isAuth, authController.getUpdatePassword)
-router.post('/update-password', authController.postUpdatePassword)
+router.post(
+  '/update-password',
+  [
+    body('confirmPassword').custom((value, { req }) => {
+      if (value !== req.body.newPassword) {
+        throw new Error('New passwords is not confirmed.');
+      }
+      return true;
+    })
+  ],
+  authController.postUpdatePassword
+)
 
 module.exports = router;

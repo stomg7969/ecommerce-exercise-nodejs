@@ -46,7 +46,9 @@ exports.getSignup = (req, res) => {
   res.render('auth/signup', {
     path: '/signup',
     pageTitle: 'Signup',
-    errorMessage: message
+    errorMessage: message,
+    oldInput: { email: '' }, // See postSignup for notes.
+    validationErrors: [] // See postSignup for notes.
   });
 };
 exports.postLogin = (req, res, next) => {
@@ -102,11 +104,13 @@ exports.postSignup = (req, res, next) => {
   const { email, password } = req.body;
   const errors = validationResult(req);
   // errors will show which one is problematic. it shows location, param, value, err msg
-  if (!errors.isEmpty()) {
+  if (!errors.isEmpty()) { // I can also do this on my login page.
     return res.status(422).render('auth/signup', {
       path: '/signup',
       pageTitle: 'Signup',
-      errorMessage: errors.array()[0].msg
+      errorMessage: errors.array()[0].msg,
+      oldInput: { email }, // User experience. In case user make a mistake on input, the input will stay there. Just email tho.
+      validationErrors: errors.array() // Pass the errors for CSS change purpose.
     });
   }
   bcrypt.hash(password, 12)
@@ -224,15 +228,29 @@ exports.getUpdatePassword = (req, res) => {
   res.render('auth/update-password', {
     path: '/update-password',
     pageTitle: 'Update Password',
-    errorMessage: message
+    errorMessage: message,
+    oldInput: {
+      password: '',
+      newPassword: '',
+      confirmPassword: ''
+    },
+    validationErrors: []
   });
 };
 // change PW while logged in
 exports.postUpdatePassword = (req, res) => {
   const { password, newPassword, confirmPassword } = req.body;
-  if (newPassword !== confirmPassword) { // I can also validate this in the routes file. (see postSignup).
-    req.flash('error', 'Confirm password again');
-    return res.redirect('/update-password');
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).render('auth/update-password', {
+      path: '/update-password',
+      pageTitle: 'Update Password',
+      errorMessage: errors.array()[0].msg,
+      oldInput: { password },
+      validationErrors: errors.array()
+      // e.g. if I am validating login process, I don't want users to know if it was id or pw that caused an error.
+      // In that case I can leave validationErrors: []. Works fine.
+    });
   }
   User.findOne({ _id: req.user._id })
     .then(userData => {
@@ -248,8 +266,13 @@ exports.postUpdatePassword = (req, res) => {
                 res.redirect('/');
               })
           } else {
-            req.flash('error', 'Incorrect Password');
-            res.redirect('/update-password');
+            return res.status(422).render('auth/update-password', {
+              path: '/update-password',
+              pageTitle: 'Update Password',
+              errorMessage: 'Incorrect password',
+              oldInput: { password: '' },
+              validationErrors: [{ param: 'password' }]
+            });
           }
         })
     })
