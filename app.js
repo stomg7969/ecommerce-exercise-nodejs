@@ -69,11 +69,14 @@ app.use((req, res, next) => {
     if (!req.session.user) return next();
     User.findById(req.session.user._id)
         .then(user => {
+            if (!user) return next();
             req.user = user; // Even if the session is available, session doesn't store the object to use. 
             // So I need to store user object separately.
             next();
         })
-        .catch(err => console.log("APP find User ERR?", err))
+        .catch(err => {
+            throw new Error(err);
+        });
 });
 // purpose of this middleware is to make dry code. When we pass render attributes to views.
 app.use((req, res, next) => {
@@ -86,7 +89,8 @@ app.use('/admin', adminRoutes);
 app.use(shopRoutes);
 app.use(authRouters);
 // ---------------  -----------------
-
+// 500 error page
+app.get('/500', errorController.get500);
 // 404 error page should be the last one.
 app.use(errorController.renderError);
 

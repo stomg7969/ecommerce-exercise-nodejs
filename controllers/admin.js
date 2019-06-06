@@ -32,9 +32,11 @@ exports.postAddProduct = (req, res) => {
 	product.save() // .save() is provided by Mongoose. wow.
 		.then(() => {
 			console.log('PRODUCT CREATED');
-			res.redirect('/');
+			res.redirect('/admin/products');
 		})
-		.catch((err) => console.log('HAS ERR IN ADMIN CTRL?', err));
+		.catch((err) => {
+			res.redirect('/500'); // Better to debug a bigger problems instead of letting the app crash.
+		});
 };
 exports.getEditProduct = (req, res, next) => {
 	// .query is for checking query params in the url.
