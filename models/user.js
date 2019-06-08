@@ -53,7 +53,7 @@ userSchema.methods.addToCart = function (product) {
     // // now, the cart will be updated with copied(new) one.
     // const updatedCart = { items: updatedCartItems };
     // this.cart = updatedCart;
-    // ----------------------------------- I don't always have to copy items then pass down.
+    // ----------------------------------- I don't always have to copy items then pass down. Below is another possible way.
     if (cartProductIdx >= 0) {
         this.cart.items[cartProductIdx].quantity++;
     } else {

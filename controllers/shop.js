@@ -1,3 +1,7 @@
+// read files in the system for getInvoice. I do remember what this is.
+const fs = require('fs');
+const path = require('path');
+
 const Product = require('../models/product');
 const Order = require('../models/order');
 
@@ -135,4 +139,16 @@ exports.getOrders = (req, res, next) => {
 			error.httpStatusCode = 500;
 			return next(error);
 		});
+};
+exports.getInvoice = (req, res, next) => {
+	const orderId = req.params.orderId;
+	const invoiceName = 'invoice-' + orderId + '.pdf';
+	const invoicePath = path.join('data', 'invoices', invoiceName);
+	fs.readFile(invoicePath, (err, data) => {
+		if (err) return next(err);
+		res.setHeader('Content-Type', 'application/pdf'); // This lets users to open 'pdf' file in the browser.
+		// 'inline means open pdf on the browser. attachment means download to pc.'
+		res.setHeader('Content-Disposition', 'inline; filename="' + invoiceName + '"');
+		res.send(data); // .send() provided by expressJS
+	});
 };
