@@ -163,7 +163,16 @@ exports.getInvoice = (req, res, next) => {
 
 			pdfDoc.pipe(fs.createWriteStream(invoicePath));
 			pdfDoc.pipe(res); // res is readable and writable stream.
-			pdfDoc.text('Hello world! Invoice will be written here');
+			pdfDoc.fontSize(25).text('Invoice', { underline: true });
+			pdfDoc.text(' ');
+			let totalPrice = 0;
+			order.products.forEach(prod => {
+				totalPrice += prod.quantity * prod.product.price;
+				pdfDoc.fontSize(15).text(`${prod.product.title} - ${prod.quantity} x $${prod.product.price}`);
+			});
+			pdfDoc.text(' ');
+			pdfDoc.text(' ');
+			pdfDoc.text('Total Price: $' + totalPrice);
 			pdfDoc.end();
 			// fs.readFile(invoicePath, (err, data) => {
 			// 	if (err) return next(err);
