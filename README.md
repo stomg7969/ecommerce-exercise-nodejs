@@ -7,6 +7,8 @@
 - _NodeJS with RESTful API_
 - _NodeJS with Websockets & Socket.io_
 - _NodeJS with GraphQL_
+- _File Upload using Multer_
+- _Send Email using SendGrid_
 
 ### MEMO
 

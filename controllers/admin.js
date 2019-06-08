@@ -14,7 +14,20 @@ exports.getAddProduct = (req, res, next) => {
 	});
 };
 exports.postAddProduct = (req, res) => {
-	const { title, imageUrl, price, description } = req.body;
+	// imageUrl is deleted from body and grab it from req.file.image because it makes sense for users to upload images than copy-pasting url.
+	const { title, price, description } = req.body;
+	const image = req.file;
+	if (!image) {
+		return res.status(422).render('admin/edit-product', {
+			pageTitle: 'ADD PRODUCT',
+			path: '/admin/add-product',
+			editing: false,
+			hasError: true,
+			product: { title, price, description }, // For old input to refilling purpose?
+			errorMessage: 'Attached file is not an image',
+			validationErrors: []
+		})
+	}
 	const errors = validationResult(req);
 	if (!errors.isEmpty()) {
 		return res.status(422).render('admin/edit-product', {
@@ -22,11 +35,12 @@ exports.postAddProduct = (req, res) => {
 			path: '/admin/add-product',
 			editing: false,
 			hasError: true,
-			product: { title, imageUrl, price, description }, // For old input to refilling purpose?
+			product: { title, price, description }, // For old input to refilling purpose?
 			errorMessage: errors.array()[0].msg,
 			validationErrors: errors.array()
 		})
 	}
+	const imageUrl = image.path; // Because I don't want to save file into db, I will only save path to the file in the db.
 	const product = new Product({ title, price, description, imageUrl, userId: req.user }); // Mongoose can pick up just the id from the entire req.user.
 	// Above two lines are ES6 formats, originally title: title.
 	product.save() // .save() is provided by Mongoose. wow.
@@ -68,7 +82,8 @@ exports.getEditProduct = (req, res, next) => {
 };
 exports.postEditProduct = (req, res, next) => {
 	// updated information
-	const { productId, title, price, imageUrl, description } = req.body;
+	const { productId, title, price, description } = req.body;
+	const image = req.file;
 	const errors = validationResult(req);
 	if (!errors.isEmpty()) {
 		return res.status(422).render('admin/edit-product', {
@@ -76,7 +91,7 @@ exports.postEditProduct = (req, res, next) => {
 			path: '/admin/edit-product',
 			editing: true,
 			hasError: true,
-			product: { _id: productId, title, imageUrl, price, description }, // For old input to refilling purpose?
+			product: { _id: productId, title, price, description }, // For old input to refilling purpose?
 			errorMessage: errors.array()[0].msg,
 			validationErrors: errors.array()
 		})
@@ -89,7 +104,10 @@ exports.postEditProduct = (req, res, next) => {
 			product.title = title;
 			product.price = price;
 			product.description = description;
-			product.imageUrl = imageUrl;
+			if (image) {
+				product.imageUrl = image.path;
+
+			}
 			return product.save()
 				.then(r => {
 					console.log('Product Updated SUCCESS!');

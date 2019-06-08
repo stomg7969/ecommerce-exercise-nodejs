@@ -17,6 +17,23 @@ const csrfProtection = csrf();
 // Session Flash - for error message and I know this.
 // npm i --save connect-flash
 const flash = require('connect-flash');
+// Multer read uploaded files (binary data) and parses it.
+const multer = require('multer');
+// Receive multer file, and diskStorage configuration will tell it how to handle the file.
+const fileStorage = multer.diskStorage({
+    // first argument in cb is error. Null means store it anyway.
+    destination: (req, file, cb) => cb(null, 'images'),
+    // second argument in cb is to make unique file name.
+    filename: (req, file, cb) => cb(null, new Date().toISOString() + '-' + file.originalname)
+});
+// Will filter and validate files before accepting.
+const fileFilter = (req, file, cb) => {
+    if (file.mimetype === 'image/png' || file.mimetype === 'image/jpg' || file.mimetype === 'image/jpeg' || file.mimetype === 'image/gif') {
+        cb(null, true); // accept file.
+    } else {
+        cb(null, false);
+    }
+}
 
 const adminRoutes = require("./routes/admin");
 const shopRoutes = require('./routes/shop');
@@ -38,13 +55,19 @@ app.set('views', 'views');
 // first argument is like 'view engine', but the second 'views' is the directory name.
 
 // --------- Middleware ----------
-app.use(bodyParser.urlencoded({ extended: true }));
+// Changes the 'body' into text for node to understand. 
 // extended can also be false
 // https://stackoverflow.com/questions/29960764/what-does-extended-mean-in-express-4-0
-
+app.use(bodyParser.urlencoded({ extended: true }));
+// bodyParser doesn't know how to read uploaded file because uploaded files are binary data.
+// So we use Multer --> parses incoming requests for files. IT IS A MIDDLEWARE. 
+// npm install --save multer
+app.use(multer({ storage: fileStorage, fileFilter }).single('image'));
+// statically serving public folder as middleware. Meaning that requests to file in the folder will be handled automatically at the files will be returned.
+// If causes an error, always check the route first if images folder is located where middleware thinks it is.
+// ... As a solution, just add / in front of product imageUrl to make it absolute path.
 app.use(express.static(path.join(__dirname, 'public')));
-// directly forwarded to the file system.
-// doesn't get handled by express. 
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 // Session: 
 // resave -> session will not be saved on every request done.
