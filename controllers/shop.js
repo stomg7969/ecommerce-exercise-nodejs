@@ -7,6 +7,8 @@ const PDFDocument = require('pdfkit');
 const Product = require('../models/product');
 const Order = require('../models/order');
 
+const ITEMS_PER_PAGE = 2; // This is for number of products rendering at once to speed up the website.
+
 exports.getProducts = (req, res, next) => {
 	Product.find() // static method given in the Mongoose documentation. Returns array
 		// IMPORTANT NOTE: If my data is large, then instead of fetching all products, use .curse().next(), or limit the data retrieved.
@@ -40,7 +42,10 @@ exports.getProduct = (req, res, next) => {
 		});
 };
 exports.getIndex = (req, res, next) => {
+	const page = req.query.page; // query is from the url after '?'
 	Product.find()
+		.skip((page - 1) * ITEMS_PER_PAGE) // skip x amount of results. 'page - 1' means skip the previous page when I move on to next page.
+		.limit(ITEMS_PER_PAGE) // Limit the number of products rendering.
 		.then(products => {
 			res.render('shop/index', {
 				products: products,
