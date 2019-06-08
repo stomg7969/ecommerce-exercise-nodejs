@@ -8,6 +8,8 @@
 - _NodeJS with Websockets & Socket.io_
 - _NodeJS with GraphQL_
 - _File Upload using Multer_
+- _Order Invoice Download (both inline and attachment)_
+- _Generate pdf based invoice using PDFKit_
 - _Send Email using SendGrid_
 
 ### MEMO

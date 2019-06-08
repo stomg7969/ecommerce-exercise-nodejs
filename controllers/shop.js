@@ -1,6 +1,8 @@
 // read files in the system for getInvoice. I do remember what this is.
 const fs = require('fs');
 const path = require('path');
+// Automatically creates PDF file --> npm install --save pdfkit
+const PDFDocument = require('pdfkit');
 
 const Product = require('../models/product');
 const Order = require('../models/order');
@@ -142,13 +144,40 @@ exports.getOrders = (req, res, next) => {
 };
 exports.getInvoice = (req, res, next) => {
 	const orderId = req.params.orderId;
-	const invoiceName = 'invoice-' + orderId + '.pdf';
-	const invoicePath = path.join('data', 'invoices', invoiceName);
-	fs.readFile(invoicePath, (err, data) => {
-		if (err) return next(err);
-		res.setHeader('Content-Type', 'application/pdf'); // This lets users to open 'pdf' file in the browser.
-		// 'inline means open pdf on the browser. attachment means download to pc.'
-		res.setHeader('Content-Disposition', 'inline; filename="' + invoiceName + '"');
-		res.send(data); // .send() provided by expressJS
-	});
+	// Only authorize the current user to download the invoice.
+	Order.findById(orderId)
+		.then(order => {
+			if (!order) {
+				return next(new Error('No order found!'));
+			}
+			if (order.user.userId.toString() !== req.user._id.toString()) {
+				return next(new Error('Unauthorized!'));
+			}
+			const invoiceName = 'invoice-' + orderId + '.pdf';
+			const invoicePath = path.join('data', 'invoices', invoiceName);
+
+			const pdfDoc = new PDFDocument();
+			res.setHeader('Content-Type', 'application/pdf'); // This lets users to open 'pdf' file
+			// 'inline means open pdf on the browser. attachment means download to pc.'
+			res.setHeader('Content-Disposition', 'inline; filename="' + invoiceName + '"');
+
+			pdfDoc.pipe(fs.createWriteStream(invoicePath));
+			pdfDoc.pipe(res); // res is readable and writable stream.
+			pdfDoc.text('Hello world! Invoice will be written here');
+			pdfDoc.end();
+			// fs.readFile(invoicePath, (err, data) => {
+			// 	if (err) return next(err);
+			// 	res.setHeader('Content-Type', 'application/pdf'); // This lets users to open 'pdf' file in the browser.
+			// 	// 'inline means open pdf on the browser. attachment means download to pc.'
+			// 	res.setHeader('Content-Disposition', 'inline; filename="' + invoiceName + '"');
+			// 	res.send(data); // .send() provided by expressJS
+			// });
+			// ----------- ABOVE COMMENTED SET OF CODES IS INEFFICIENT WHEN DEALING WITH LARGE FILES. -----------
+			// const file = fs.createReadStream(invoicePath); // Read data. Just stream it instead of saving to memory.
+			// res.setHeader('Content-Type', 'application/pdf'); // This lets users to open 'pdf' file
+			// // 'inline means open pdf on the browser. attachment means download to pc.'
+			// res.setHeader('Content-Disposition', 'inline; filename="' + invoiceName + '"');
+			// file.pipe(res); // .pipe() method will forward the data that is read in with the stream to res. 
+		})
+		.catch(err => next(err));
 };
