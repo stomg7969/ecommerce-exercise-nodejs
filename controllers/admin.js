@@ -1,5 +1,6 @@
 const { validationResult } = require('express-validator/check');
 const Product = require('../models/product');
+const fileHelper = require('../helper/file');
 
 exports.getAddProduct = (req, res, next) => {
 	// Since anyone can get access to this page without logging in by manually typing the url, I will create middleware.
@@ -105,8 +106,9 @@ exports.postEditProduct = (req, res, next) => {
 			product.price = price;
 			product.description = description;
 			if (image) {
+				// fileHelper is imported from helper folder
+				fileHelper.deleteFile(product.imageUrl); // This is promise, but we don't wait because we don't care about the result.
 				product.imageUrl = image.path;
-
 			}
 			return product.save()
 				.then(r => {
@@ -122,10 +124,17 @@ exports.postEditProduct = (req, res, next) => {
 };
 exports.postDeleteProduct = (req, res) => {
 	const { productId, productPrice } = req.body;
-	// ------------- SEQUELIZE ---------------
-	// what about price?
-	// Product.findByIdAndRemove(productId)
-	Product.deleteOne({ _id: productId, userId: req.user._id })
+	// UPDATING PRODUCT PRICE IS SOMETHING I HAVE TO DO ON MY OWN.
+	Product.findById(productId)
+		.then(product => {
+			if (!product) {
+				return next(new Error('Product not found!'))
+			};
+			// fileHelper is imported from helper folder
+			fileHelper.deleteFile(product.imageUrl); // This is promise, but we don't wait because we don't care about the result.
+			// Product.findByIdAndRemove(productId)
+			return Product.deleteOne({ _id: productId, userId: req.user._id })
+		})
 		.then(r => {
 			console.log('DESTROY SUCCESS.');
 			res.redirect('/admin/products');
