@@ -9,7 +9,7 @@ exports.paginate = (req, res, next, viewRender, pageTitle, pagePath) => {
   let totalItems;
   Product.find() // static method given in the Mongoose documentation. Returns array
     // IMPORTANT NOTE: If my data is large, then instead of fetching all products, use .curse().next(), or limit the data retrieved.
-    .countDocuments()
+    .estimatedDocumentCount() // faster than .countDocuments() <https://mongoosejs.com/docs/api.html#model_Model.countDocuments>
     .then(numProducts => {
       totalItems = numProducts;
       return Product.find()
