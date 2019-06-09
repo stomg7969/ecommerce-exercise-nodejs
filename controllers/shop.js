@@ -6,25 +6,11 @@ const PDFDocument = require('pdfkit');
 
 const Product = require('../models/product');
 const Order = require('../models/order');
+// Pagination is refactored and moved to helper folder.
+const { paginate } = require('../helper/pagination');
 
-const ITEMS_PER_PAGE = 2; // This is for number of products rendering at once to speed up the website.
-
-exports.getProducts = (req, res, next) => {
-	Product.find() // static method given in the Mongoose documentation. Returns array
-		// IMPORTANT NOTE: If my data is large, then instead of fetching all products, use .curse().next(), or limit the data retrieved.
-		.then(products => {
-			res.render('shop/product-list', {
-				products: products,
-				pageTitle: 'All Products',
-				path: '/products'
-			});
-		})
-		.catch(err => {
-			const error = new Error(err);
-			error.httpStatusCode = 500;
-			return next(error);
-		});
-};
+// Below can also be router.get('/products', paginate('shop/product-list', 'Products', '/products'));
+exports.getProducts = (req, res, next) => paginate(req, res, next, 'shop/product-list', 'Products', '/products');
 exports.getProduct = (req, res, next) => {
 	const prodId = req.params.productId;
 	Product.findById(prodId) // Mongoose already had findById, so we don't need to define it. So nice.
@@ -41,24 +27,7 @@ exports.getProduct = (req, res, next) => {
 			return next(error);
 		});
 };
-exports.getIndex = (req, res, next) => {
-	const page = req.query.page; // query is from the url after '?'
-	Product.find()
-		.skip((page - 1) * ITEMS_PER_PAGE) // skip x amount of results. 'page - 1' means skip the previous page when I move on to next page.
-		.limit(ITEMS_PER_PAGE) // Limit the number of products rendering.
-		.then(products => {
-			res.render('shop/index', {
-				products: products,
-				pageTitle: 'Shop',
-				path: '/'
-			});
-		})
-		.catch(err => {
-			const error = new Error(err);
-			error.httpStatusCode = 500;
-			return next(error);
-		});
-};
+exports.getIndex = (req, res, next) => paginate(req, res, next, 'shop/index', 'Shop', '/');
 exports.getCart = (req, res, next) => {
 	req.user.populate('cart.items.productId').execPopulate() // need .execPopulate to make promise to resolve, unless cb is called before .populate().
 		// again fetch data using .populate(). 
