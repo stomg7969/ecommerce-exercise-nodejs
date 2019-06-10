@@ -1,8 +1,14 @@
+// dotenv
+const dotenv = require('dotenv');
+dotenv.config();
 // read files in the system for getInvoice. I do remember what this is.
 const fs = require('fs');
 const path = require('path');
 // Automatically creates PDF file --> npm install --save pdfkit
 const PDFDocument = require('pdfkit');
+// Stripe payment system, npm install --save stripe
+// const stripe = require('stripe')('sk_test_BMD9aaviqJzK0hlROg2KMRbD');
+const stripe = require('stripe')(process.env.STRIPE_API_KEY);
 
 const Product = require('../models/product');
 const Order = require('../models/order');
@@ -69,10 +75,41 @@ exports.postCartDeleteProduct = (req, res) => {
 			return next(error);
 		});
 };
+exports.getCheckout = (req, res, next) => {
+	// need .execPopulate to make promise to resolve, unless cb is called before .populate().
+	req.user.populate('cart.items.productId').execPopulate()
+		// again fetch data using .populate(). 
+		.then(user => {
+			const products = user.cart.items;
+			let total = 0;
+			products.forEach(prod => {
+				total += prod.quantity * prod.productId.price;
+			});
+			res.render('shop/checkout', {
+				pageTitle: 'Checkout',
+				path: '/checkout',
+				products: products,
+				totalSum: total
+			});
+		})
+		.catch(err => {
+			const error = new Error(err);
+			error.httpStatusCode = 500;
+			return next(error);
+		});
+};
 exports.postOrder = (req, res) => {
+	// Token is created using Checkout or Elements!
+	// Get the payment token ID submitted by the form:
+	const token = req.body.stripeToken; // Using Express && Stripe
+	let totalSum = 0;
 	// first, fetch product info from req.user(user model).
 	req.user.populate('cart.items.productId').execPopulate()
 		.then(user => {
+			// this is for Stripe (section 23)
+			user.cart.items.forEach(p => {
+				totalSum += p.quantity * p.productId.price;
+			})
 			// second, now fetched, loop through item to render not just productId, but other detail info.
 			const products = user.cart.items.map(item => {
 				return {
@@ -92,6 +129,14 @@ exports.postOrder = (req, res) => {
 			return order.save();
 		})
 		.then(r => {
+			// Stripe
+			const charge = stripe.charges.create({
+				amount: totalSum * 100,
+				currency: 'usd',
+				description: 'Demo Order',
+				source: token,
+				metadata: { order_id: result._id.toString() } // metadata: pass arbitrary data
+			})
 			req.user.clearCart(); // custom method created in model.
 			res.redirect('/orders');
 		})

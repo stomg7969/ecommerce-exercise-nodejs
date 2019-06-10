@@ -11,6 +11,7 @@
 - _Order Invoice Download (both inline and attachment)_
 - _Generate pdf based invoice using PDFKit_
 - _Send Email using SendGrid_
+- _Payment Feature using Stripe(not fully functional)_
 
 ### MEMO
 

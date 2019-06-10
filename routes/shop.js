@@ -15,6 +15,8 @@ router.get("/products/:productId", shopController.getProduct);
 router.get("/cart", isAuth, shopController.getCart);
 router.post("/cart", shopController.postCart);
 router.post('/cart-delete-item', shopController.postCartDeleteProduct);
+// Payment feature
+router.get('/checkout', isAuth, shopController.getCheckout);
 
 router.get("/orders", isAuth, shopController.getOrders);
 router.post('/create-order', shopController.postOrder);
