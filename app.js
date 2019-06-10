@@ -58,7 +58,7 @@ app.set('views', 'views');
 // Changes the 'body' into text for node to understand. 
 // extended can also be false
 // https://stackoverflow.com/questions/29960764/what-does-extended-mean-in-express-4-0
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({ extended: false }));
 // bodyParser doesn't know how to read uploaded file because uploaded files are binary data.
 // So we use Multer --> parses incoming requests for files. IT IS A MIDDLEWARE. 
 // npm install --save multer

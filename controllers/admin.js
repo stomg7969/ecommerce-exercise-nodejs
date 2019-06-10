@@ -122,9 +122,10 @@ exports.postEditProduct = (req, res, next) => {
 			return next(error); // If I call next() with error as an argument, it will call 500 error middleware in app.js
 		});
 };
-exports.postDeleteProduct = (req, res) => {
-	const { productId, productPrice } = req.body;
+exports.deleteProduct = (req, res) => {
 	// UPDATING PRODUCT PRICE IS SOMETHING I HAVE TO DO ON MY OWN.
+	// const { productId, productPrice } = req.body;
+	const { productId } = req.params;
 	Product.findById(productId)
 		.then(product => {
 			if (!product) {
@@ -137,12 +138,12 @@ exports.postDeleteProduct = (req, res) => {
 		})
 		.then(r => {
 			console.log('DESTROY SUCCESS.');
-			res.redirect('/admin/products');
+			// res.redirect('/admin/products'); No more redirecting to re-render the page. 
+			// argument in json() is NOT optional. Client side fetch needs something in return. This arg is the something. 
+			res.status(200).json({ message: 'Delete Success' });
 		})
 		.catch(err => {
-			const error = new Error(err);
-			error.httpStatusCode = 500;
-			return next(error);
+			res.status(500).json({ message: "Deleting failed: 500" });
 		});
 };
 exports.getProducts = (req, res, next) => {
