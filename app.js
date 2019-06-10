@@ -78,8 +78,7 @@ app.use(session({
     saveUninitialized: false,
     store: store
 }));
-// Using csurf, .csrfToken() can be found in the req. 
-app.use(csrfProtection);
+
 // Flash MUST be called after the session.
 app.use(flash());
 
@@ -90,7 +89,6 @@ const User = require('./models/user');
 // purpose of this middleware is to make dry code. When we pass render attributes to views.
 app.use((req, res, next) => {
     res.locals.isAuthenticated = req.session.isLoggedIn;
-    res.locals.csrfToken = req.csrfToken();
     next();
 });
 // --------------- MiddleWare -----------------
@@ -108,6 +106,19 @@ app.use((req, res, next) => {
         .catch(err => {
             next(new Error(err));
         });
+});
+const shopController = require('./controllers/shop');
+// isAuth checks if user is authorized to have an access.
+const isAuth = require('./middleware/is-auth');
+// Payment feature with Stripe
+
+app.post('/create-order', isAuth, shopController.postOrder);
+
+// Using csurf, .csrfToken() can be found in the req. 
+app.use(csrfProtection); // below checkout because it's external application, csrf won't work.
+app.use((req, res, next) => {
+    res.locals.csrfToken = req.csrfToken();
+    next();
 });
 
 app.use('/admin', adminRoutes);

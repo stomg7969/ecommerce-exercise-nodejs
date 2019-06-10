@@ -98,7 +98,7 @@ exports.getCheckout = (req, res, next) => {
 			return next(error);
 		});
 };
-exports.postOrder = (req, res) => {
+exports.postOrder = (req, res, next) => {
 	// Token is created using Checkout or Elements!
 	// Get the payment token ID submitted by the form:
 	const token = req.body.stripeToken; // Using Express && Stripe
@@ -135,7 +135,7 @@ exports.postOrder = (req, res) => {
 				currency: 'usd',
 				description: 'Demo Order',
 				source: token,
-				metadata: { order_id: result._id.toString() } // metadata: pass arbitrary data
+				metadata: { order_id: r._id.toString() } // metadata: pass arbitrary data
 			})
 			req.user.clearCart(); // custom method created in model.
 			res.redirect('/orders');
