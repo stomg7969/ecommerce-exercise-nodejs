@@ -135,7 +135,7 @@ exports.postOrder = (req, res, next) => {
 				currency: 'usd',
 				description: 'Demo Order',
 				source: token,
-				metadata: { order_id: r._id.toString() } // metadata: pass arbitrary data
+				metadata: { order_id: r._id.toString() } // metadata: pass arbitrary data, store id into stripe dashboard.
 			})
 			req.user.clearCart(); // custom method created in model.
 			res.redirect('/orders');
