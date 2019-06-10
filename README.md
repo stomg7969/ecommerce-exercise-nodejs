@@ -4,18 +4,11 @@
 - _Pure NodeJS with only ExpressJS_
 - _NodeJS with MySQL_
 - _NodeJS with MongoDB & Mongoose_
-- _NodeJS with RESTful API_
-- _NodeJS with Websockets & Socket.io_
-- _NodeJS with GraphQL_
 - _File Upload using Multer_
 - _Order Invoice Download (both inline and attachment)_
 - _Generate pdf based invoice using PDFKit_
 - _Send Email using SendGrid_
 - _Payment Feature using Stripe(not fully functional)_
-
-### MEMO
-
-- Must work on price update_in cart and order
 
 ### LEARNING
 
