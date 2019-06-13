@@ -4,10 +4,13 @@ dotenv.config();
 // Process.env ... is the same, but I need to create nodemon.json, instead of writing things in .env file.
 // Then, in the package.json file, I need "NODE_ENV=production" as default, ...
 // ... then pass everything else that I want to secure.
+// TO RUN DEV mode with nodemon I need to type in ==> 'npm run start:dev'.
 const MONGODB_URI = `mongodb+srv://${process.env.mongoID}:${process.env.mongoPW}@cluster0-kl0m7.mongodb.net/${process.env.MONGO_DEFAULT_DATABASE}`;
 
+const https = require('https');
 const express = require('express');
 const bodyParser = require('body-parser');
+const fs = require('fs');
 const path = require('path');
 // Session management. I can use session with cookie.
 // IMPORTANT NOTE :: Cookies are accessible by any users. That is why we use session to store sensitive info.
@@ -21,9 +24,26 @@ const csrfProtection = csrf();
 // Session Flash - for error message and I know this.
 // npm i --save connect-flash
 const flash = require('connect-flash');
+// ********************** Node Packages that secure my app **********************
 // Library that secures Node Express applications. ==> npm install --save helmet
 // Adds certain HTTP headers. Protects from various attacks.
 const helmet = require('helmet');
+// Compression. Assets are loaded in smaller size. Much efficient as I have more to load. ==> npm install --save compression
+// CSS code and javascript codes are compressed. Not image files
+const compression = require('compression');
+// Make logging request data really simple ==> npm install --save morgan
+// Provide me a file with desired logs to see what is happening on my app. Need manual customization, Optional
+const morgan = require('morgan');
+// SSL server setup. In the terminal type the following:
+// openssl req -nodes -new -x509 -keyout server.key -out server.cert
+// This command will give you private key and public key package doc in a certificate.
+// DON'T USE IT WHILE DEVELOPING MODE.
+// reads file synchronously, app will stop until this finishes, which I want.
+// Then, go to app.listen(port) ==> change to https.createServer().listen(port) ...
+// IMPORTANT NOTE: this is usually the server host's responsibility. Probably AWS?
+const privateKey = fs.readFileSync('server.key');
+const certificate = fs.readFileSync('server.cert');
+// ******************************************************************
 // Multer read uploaded files (binary data) and parses it.
 const multer = require('multer');
 // Receive multer file, and diskStorage configuration will tell it how to handle the file.
@@ -62,8 +82,11 @@ app.set('views', 'views');
 // first argument is like 'view engine', but the second 'views' is the directory name.
 
 // --------- Middleware ----------
-// Secure application helper
+// Newly installed packages to help and secure when deploying apps.
 app.use(helmet());
+app.use(compression());
+const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' });
+app.use(morgan('combined', { stream: accessLogStream }));
 // Changes the 'body' into text for node to understand. 
 // extended can also be false
 // https://stackoverflow.com/questions/29960764/what-does-extended-mean-in-express-4-0
@@ -157,7 +180,8 @@ const mongoose = require('mongoose');
 mongoose.connect(MONGODB_URI, { useNewUrlParser: true })
     .then(r => {
         console.log('CONNECT SUCCESSFUL');
-        app.listen(process.env.PORT || 3000);
+        https.createServer({ key: privateKey, cert: certificate }, app)
+            .listen(process.env.PORT || 3000);
     })
     .catch(err => console.log("PROBLEM CONNECTING?", err));
 
