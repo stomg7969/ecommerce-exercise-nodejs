@@ -1,6 +1,10 @@
 const dotenv = require('dotenv');
 dotenv.config();
-const MONGODB_URI = `mongodb+srv://${process.env.mongoID}:${process.env.mongoPW}@cluster0-kl0m7.mongodb.net/shop?retryWrites=true&w=majority`;
+// Instead of dotenv, express has default way to do it. 
+// Process.env ... is the same, but I need to create nodemon.json, instead of writing things in .env file.
+// Then, in the package.json file, I need "NODE_ENV=production" as default, ...
+// ... then pass everything else that I want to secure.
+const MONGODB_URI = `mongodb+srv://${process.env.mongoID}:${process.env.mongoPW}@cluster0-kl0m7.mongodb.net/${process.env.MONGO_DEFAULT_DATABASE}`;
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -17,6 +21,9 @@ const csrfProtection = csrf();
 // Session Flash - for error message and I know this.
 // npm i --save connect-flash
 const flash = require('connect-flash');
+// Library that secures Node Express applications. ==> npm install --save helmet
+// Adds certain HTTP headers. Protects from various attacks.
+const helmet = require('helmet');
 // Multer read uploaded files (binary data) and parses it.
 const multer = require('multer');
 // Receive multer file, and diskStorage configuration will tell it how to handle the file.
@@ -55,6 +62,8 @@ app.set('views', 'views');
 // first argument is like 'view engine', but the second 'views' is the directory name.
 
 // --------- Middleware ----------
+// Secure application helper
+app.use(helmet());
 // Changes the 'body' into text for node to understand. 
 // extended can also be false
 // https://stackoverflow.com/questions/29960764/what-does-extended-mean-in-express-4-0
@@ -148,7 +157,7 @@ const mongoose = require('mongoose');
 mongoose.connect(MONGODB_URI, { useNewUrlParser: true })
     .then(r => {
         console.log('CONNECT SUCCESSFUL');
-        app.listen(3000);
+        app.listen(process.env.PORT || 3000);
     })
     .catch(err => console.log("PROBLEM CONNECTING?", err));
 
